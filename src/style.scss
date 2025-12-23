@@ -1,0 +1,186 @@
+/**
+ * Frontend Styles
+ */
+
+/* Outer block wrapper - sticky compatible */
+.wp-block-icon-grid-unlimited-icon-grid {
+    width: 100%;
+}
+
+/* When sticky class is applied (via Gutenberg or custom) */
+.wp-block-icon-grid-unlimited-icon-grid.is-sticky,
+.wp-block-icon-grid-unlimited-icon-grid[style*="sticky"] {
+    position: sticky;
+    top: 20px;
+    align-self: flex-start;
+    /* Needed for sticky in flex containers */
+}
+
+/* Fix for Gutenberg columns - parent column needs overflow visible for sticky to work */
+.wp-block-column:has(.wp-block-icon-grid-unlimited-icon-grid.is-sticky) {
+    overflow: visible !important;
+}
+
+/* Fix for Gutenberg group/row containers */
+.wp-block-group:has(.wp-block-icon-grid-unlimited-icon-grid.is-sticky),
+.wp-block-columns:has(.wp-block-icon-grid-unlimited-icon-grid.is-sticky) {
+    overflow: visible !important;
+}
+
+/* Fallback for browsers without :has() - add this class to parent column manually if needed */
+.icon-grid-sticky-parent {
+    overflow: visible !important;
+}
+
+/* Inner wrapper - needs relative for line overlay positioning */
+.wp-block-icon-grid-unlimited-icon-grid>.icon-grid-wrapper {
+    position: relative;
+}
+
+.icon-grid-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: clamp(6px, 2vw, 15px);
+    //padding: clamp(15px, 4vw, 40px);
+    max-width: 100%;
+}
+
+.icon-grid-cell-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: relative;
+}
+
+.icon-grid-cell {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    z-index: 1;
+    opacity: 0;
+}
+
+.icon-grid-cell-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    background: transparent;
+    border: 1px solid #00000031;
+    box-shadow: none;
+    z-index: 60;
+    pointer-events: none;
+    will-change: transform, background-color, box-shadow;
+    /* GPU optimization */
+}
+
+.icon-grid-cell:hover .icon-grid-cell-bg {
+    border: none;
+}
+
+.icon-grid-label {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: clamp(8px, 1.5vw, 11px);
+    font-weight: 500;
+    color: #333;
+    visibility: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 70;
+}
+
+.icon-grid-cell:hover .icon-grid-label {
+    visibility: visible;
+}
+
+.icon-grid-cell:hover {
+    z-index: 10;
+}
+
+.icon-grid-cell>.icon-grid-wrapper {
+    position: relative;
+    width: 55%;
+    aspect-ratio: 1 / 1;
+    z-index: 70;
+    will-change: transform;
+    /* GPU optimization */
+}
+
+.icon-grid-wrapper svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.icon-grid-wireframe {
+    z-index: 2;
+    will-change: opacity;
+    /* GPU optimization */
+}
+
+.icon-grid-wireframe path,
+.icon-grid-wireframe circle,
+.icon-grid-wireframe rect,
+.icon-grid-wireframe polygon,
+.icon-grid-wireframe polyline,
+.icon-grid-wireframe line,
+.icon-grid-wireframe ellipse {
+    fill: none;
+    stroke: #333;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-grid-gradient {
+    z-index: 1;
+    opacity: 0;
+    mix-blend-mode: multiply;
+}
+
+.icon-grid-line-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -50;
+    overflow: visible;
+}
+
+.icon-grid-connecting-line {
+    stroke: #333;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Screen reader only */
+.icon-grid-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
