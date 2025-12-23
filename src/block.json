@@ -61,6 +61,14 @@
             "type": "number",
             "default": 0
         },
+        "tileBlockSettings": {
+            "type": "object",
+            "default": {}
+        },
+        "tileBlocks": {
+            "type": "object",
+            "default": {}
+        },
         "config": {
             "type": "object",
             "default": {

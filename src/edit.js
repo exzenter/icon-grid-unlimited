@@ -62,6 +62,8 @@ export default function Edit({ attributes, setAttributes }) {
         enlargeTriggerButton,
         enlargeTriggerEvent,
         enlargeTriggerScroll,
+        tileBlockSettings,
+        tileBlocks,
         config,
         animationRounds,
         iconLabels,
@@ -121,6 +123,28 @@ export default function Edit({ attributes, setAttributes }) {
         }
         newSettings[index][field] = value;
         setAttributes({ perTileIconSettings: newSettings });
+    };
+
+    // Update tile block settings (enable block, hover options, etc.)
+    const updateTileBlockSettings = (index, field, value) => {
+        const newSettings = { ...tileBlockSettings };
+        if (!newSettings[index]) {
+            newSettings[index] = { enabled: false, hoverOpacity: true, hoverScale: false, showLabel: true };
+        }
+        newSettings[index][field] = value;
+        setAttributes({ tileBlockSettings: newSettings });
+    };
+
+    // Update tile block content (serialized HTML)
+    const updateTileBlock = (index, content) => {
+        const newBlocks = { ...tileBlocks };
+        newBlocks[index] = content;
+        setAttributes({ tileBlocks: newBlocks });
+    };
+
+    // Get tile block settings with defaults
+    const getTileBlockSettings = (index) => {
+        return tileBlockSettings[index] || { enabled: false, hoverOpacity: true, hoverScale: false, showLabel: true };
     };
 
     // Parse and save animation rounds
@@ -757,7 +781,50 @@ export default function Edit({ attributes, setAttributes }) {
                                             placeholder={__('Paste SVG path here (e.g., <polygon points="..."/>)', 'icon-grid-unlimited')}
                                             rows={4}
                                             style={{ fontFamily: 'monospace', fontSize: '11px' }}
+                                            disabled={getTileBlockSettings(selectedTile).enabled}
                                         />
+
+                                        {/* Enable Block Section */}
+                                        <div style={{ marginTop: '20px', padding: '12px', background: '#e8f4f8', borderRadius: '4px', border: '1px solid #b8dadd' }}>
+                                            <ToggleControl
+                                                label={__('Enable Block (replaces SVG)', 'icon-grid-unlimited')}
+                                                checked={getTileBlockSettings(selectedTile).enabled}
+                                                onChange={(v) => updateTileBlockSettings(selectedTile, 'enabled', v)}
+                                                help={__('When enabled, a Gutenberg block is used instead of the SVG icon.', 'icon-grid-unlimited')}
+                                            />
+                                            {getTileBlockSettings(selectedTile).enabled && (
+                                                <>
+                                                    <TextareaControl
+                                                        label={__('Block HTML', 'icon-grid-unlimited')}
+                                                        value={tileBlocks[selectedTile] || ''}
+                                                        onChange={(v) => updateTileBlock(selectedTile, v)}
+                                                        placeholder={__('Paste block HTML here (e.g., <div class="...">content</div>)', 'icon-grid-unlimited')}
+                                                        rows={6}
+                                                        style={{ fontFamily: 'monospace', fontSize: '11px' }}
+                                                    />
+                                                    <p style={{ fontSize: '11px', color: '#666', marginTop: '-8px', marginBottom: '12px' }}>
+                                                        {__('Tip: Use the block editor to create content, then copy the HTML and paste here.', 'icon-grid-unlimited')}
+                                                    </p>
+                                                    <h4 style={{ marginBottom: '8px' }}>{__('Hover Animation Options', 'icon-grid-unlimited')}</h4>
+                                                    <ToggleControl
+                                                        label={__('Opacity fade (0.3 → 1.0)', 'icon-grid-unlimited')}
+                                                        checked={getTileBlockSettings(selectedTile).hoverOpacity}
+                                                        onChange={(v) => updateTileBlockSettings(selectedTile, 'hoverOpacity', v)}
+                                                    />
+                                                    <ToggleControl
+                                                        label={__('Scale + shadow (like SVG tiles)', 'icon-grid-unlimited')}
+                                                        checked={getTileBlockSettings(selectedTile).hoverScale}
+                                                        onChange={(v) => updateTileBlockSettings(selectedTile, 'hoverScale', v)}
+                                                    />
+                                                    <h4 style={{ marginTop: '12px', marginBottom: '8px' }}>{__('Display Options', 'icon-grid-unlimited')}</h4>
+                                                    <ToggleControl
+                                                        label={__('Show label', 'icon-grid-unlimited')}
+                                                        checked={getTileBlockSettings(selectedTile).showLabel}
+                                                        onChange={(v) => updateTileBlockSettings(selectedTile, 'showLabel', v)}
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
 
                                         {/* Per-tile Icon Settings */}
                                         <div style={{ marginTop: '20px', padding: '12px', background: '#f9f9f9', borderRadius: '4px' }}>

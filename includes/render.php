@@ -56,6 +56,8 @@ $inactiveStrokeWidth = $attributes['config']['inactiveStrokeWidth'] ?? 1.5;
 $iconOffsetX = $attributes['config']['iconOffsetX'] ?? 0;
 $iconOffsetY = $attributes['config']['iconOffsetY'] ?? 0;
 $perTileIconSettings = $attributes['perTileIconSettings'] ?? [];
+$tileBlockSettings = $attributes['tileBlockSettings'] ?? [];
+$tileBlocks = $attributes['tileBlocks'] ?? [];
 
 // Sticky settings
 $stickyEnabled = $attributes['stickyEnabled'] ?? false;
@@ -122,6 +124,29 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
             endif;
         endforeach; 
         ?>
+        /* Block tile styles */
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell.block-tile .block-content {
+            position: absolute;
+            inset: 0;
+            z-index: 70;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell.block-tile .block-content > * {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell.block-tile.hover-opacity .block-content {
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell.block-tile.hover-opacity:hover .block-content,
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell.block-tile.hover-opacity.active .block-content {
+            opacity: 1;
+        }
     </style>
     <div class="icon-grid-wrapper">
         <div class="icon-grid-container" data-config='<?php echo esc_attr($config_json); ?>'>
@@ -154,35 +179,57 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $svgPath = $attributes['iconSvgs'][$storageIndex] ?? '';
                         $gradient = $default_gradients[$iconIndex % count($default_gradients)];
                         $gradientId = 'grad-' . $block_id . '-' . $iconIndex;
+                        
+                        // Check if this is a block-enabled tile
+                        $blockSettings = $tileBlockSettings[$storageIndex] ?? ['enabled' => false];
+                        $isBlockTile = !empty($blockSettings['enabled']);
+                        $blockContent = $tileBlocks[$storageIndex] ?? '';
+                        
+                        // Build CSS classes for block tiles
+                        $cellClasses = 'icon-grid-cell';
+                        if ($isBlockTile) {
+                            $cellClasses .= ' block-tile';
+                            if (!empty($blockSettings['hoverOpacity'])) $cellClasses .= ' hover-opacity';
+                            if (!empty($blockSettings['hoverScale'])) $cellClasses .= ' hover-scale';
+                        }
                     ?>
-                        <a class="icon-grid-cell" 
+                        <a class="<?php echo esc_attr($cellClasses); ?>" 
                            href="<?php echo esc_url($seoInfo['url'] ?? '#'); ?>"
                            title="<?php echo esc_attr($label . ' - Mehr erfahren'); ?>">
                             
                             <div class="icon-grid-cell-bg"></div>
                             
-                            <div class="icon-grid-wrapper">
-                                <?php if (!empty($svgPath)): ?>
-                                    <svg class="icon-grid-wireframe" viewBox="0 0 64 64" aria-label="<?php echo esc_attr($label . ' Icon'); ?>" role="img">
-                                        <?php echo $svgPath; ?>
-                                </svg>
-                                <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
-                                    <defs>
-                                        <linearGradient id="<?php echo esc_attr($gradientId); ?>" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:<?php echo esc_attr($gradient[0]); ?>"/>
-                                            <stop offset="100%" style="stop-color:<?php echo esc_attr($gradient[1]); ?>"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
-                                        <?php echo $svgPath; ?>
-                                    </g>
-                                </svg>
+                            <?php if ($isBlockTile && !empty($blockContent)): ?>
+                                <div class="block-content">
+                                    <?php echo $blockContent; ?>
+                                </div>
+                                <?php if (!empty($blockSettings['showLabel'])): ?>
+                                    <span class="icon-grid-label"><?php echo esc_html($label); ?></span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="icon-grid-wrapper">
+                                    <?php if (!empty($svgPath)): ?>
+                                        <svg class="icon-grid-wireframe" viewBox="0 0 64 64" aria-label="<?php echo esc_attr($label . ' Icon'); ?>" role="img">
+                                            <?php echo $svgPath; ?>
+                                    </svg>
+                                    <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
+                                        <defs>
+                                            <linearGradient id="<?php echo esc_attr($gradientId); ?>" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:<?php echo esc_attr($gradient[0]); ?>"/>
+                                                <stop offset="100%" style="stop-color:<?php echo esc_attr($gradient[1]); ?>"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
+                                            <?php echo $svgPath; ?>
+                                        </g>
+                                    </svg>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <span class="icon-grid-label"><?php echo esc_html($label); ?></span>
                             <?php endif; ?>
-                        </div>
-                        
-                        <span class="icon-grid-label"><?php echo esc_html($label); ?></span>
-                        <span class="icon-grid-sr-only"><?php echo esc_html($seoInfo['description'] ?? $label); ?></span>
-                    </a>
+                            <span class="icon-grid-sr-only"><?php echo esc_html($seoInfo['description'] ?? $label); ?></span>
+                        </a>
                 <?php 
                     $iconIndex++;
                 endif; 
@@ -230,35 +277,57 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $svgPath = $attributes['iconSvgs'][$storageIndex] ?? '';
                         $gradient = $default_gradients[$iconIndex % count($default_gradients)];
                         $gradientId = 'grad-' . $block_id . '-exp-' . $iconIndex;
+                        
+                        // Check if this is a block-enabled tile
+                        $blockSettings = $tileBlockSettings[$storageIndex] ?? ['enabled' => false];
+                        $isBlockTile = !empty($blockSettings['enabled']);
+                        $blockContent = $tileBlocks[$storageIndex] ?? '';
+                        
+                        // Build CSS classes for block tiles
+                        $cellClasses = 'icon-grid-cell';
+                        if ($isBlockTile) {
+                            $cellClasses .= ' block-tile';
+                            if (!empty($blockSettings['hoverOpacity'])) $cellClasses .= ' hover-opacity';
+                            if (!empty($blockSettings['hoverScale'])) $cellClasses .= ' hover-scale';
+                        }
                     ?>
-                        <a class="icon-grid-cell" 
+                        <a class="<?php echo esc_attr($cellClasses); ?>" 
                            href="<?php echo esc_url($seoInfo['url'] ?? '#'); ?>"
                            title="<?php echo esc_attr($label . ' - Mehr erfahren'); ?>">
                             
                             <div class="icon-grid-cell-bg"></div>
                             
-                            <div class="icon-grid-wrapper">
-                                <?php if (!empty($svgPath)): ?>
-                                    <svg class="icon-grid-wireframe" viewBox="0 0 64 64" aria-label="<?php echo esc_attr($label . ' Icon'); ?>" role="img">
-                                        <?php echo $svgPath; ?>
-                                </svg>
-                                <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
-                                    <defs>
-                                        <linearGradient id="<?php echo esc_attr($gradientId); ?>" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:<?php echo esc_attr($gradient[0]); ?>"/>
-                                            <stop offset="100%" style="stop-color:<?php echo esc_attr($gradient[1]); ?>"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
-                                        <?php echo $svgPath; ?>
-                                    </g>
-                                </svg>
+                            <?php if ($isBlockTile && !empty($blockContent)): ?>
+                                <div class="block-content">
+                                    <?php echo $blockContent; ?>
+                                </div>
+                                <?php if (!empty($blockSettings['showLabel'])): ?>
+                                    <span class="icon-grid-label"><?php echo esc_html($label); ?></span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="icon-grid-wrapper">
+                                    <?php if (!empty($svgPath)): ?>
+                                        <svg class="icon-grid-wireframe" viewBox="0 0 64 64" aria-label="<?php echo esc_attr($label . ' Icon'); ?>" role="img">
+                                            <?php echo $svgPath; ?>
+                                    </svg>
+                                    <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
+                                        <defs>
+                                            <linearGradient id="<?php echo esc_attr($gradientId); ?>" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:<?php echo esc_attr($gradient[0]); ?>"/>
+                                                <stop offset="100%" style="stop-color:<?php echo esc_attr($gradient[1]); ?>"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
+                                            <?php echo $svgPath; ?>
+                                        </g>
+                                    </svg>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <span class="icon-grid-label"><?php echo esc_html($label); ?></span>
                             <?php endif; ?>
-                        </div>
-                        
-                        <span class="icon-grid-label"><?php echo esc_html($label); ?></span>
-                        <span class="icon-grid-sr-only"><?php echo esc_html($seoInfo['description'] ?? $label); ?></span>
-                    </a>
+                            <span class="icon-grid-sr-only"><?php echo esc_html($seoInfo['description'] ?? $label); ?></span>
+                        </a>
                 <?php 
                     $iconIndex++;
                 endif; 
