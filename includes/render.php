@@ -732,6 +732,9 @@ if (!empty($structuredData['itemListElement'])):
     }
     
     function highlightCell(cell) {
+        // Skip if user is currently hovering this cell - it's already highlighted
+        if (cell.matches(':hover')) return;
+
         // Use cached DOM references for performance
         const cellBg = cell._cellBg;
         const wrapper = cell._wrapper;
@@ -741,6 +744,9 @@ if (!empty($structuredData['itemListElement'])):
         
         if (label) label.style.visibility = 'visible';
         
+        // Kill any in-progress animations
+        anime.remove([cellBg, wrapper, wireframe, gradient]);
+
         anime({
             targets: cellBg,
             scale: CONFIG.hoverScale || 1.08,
@@ -767,6 +773,9 @@ if (!empty($structuredData['itemListElement'])):
         const label = cell._label;
         
         if (label) label.style.visibility = '';
+        
+        // Kill any in-progress animations
+        anime.remove([cellBg, wrapper, wireframe, gradient]);
         
         anime({
             targets: cellBg,
@@ -909,6 +918,9 @@ if (!empty($structuredData['itemListElement'])):
         const label = cell._label;
         
         cell.addEventListener('mouseenter', () => {
+            // Skip if already highlighted by animation - prevents double box-shadow
+            if (currentlyHighlighted.includes(cell)) return;
+            
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
             
