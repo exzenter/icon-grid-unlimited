@@ -69,9 +69,11 @@ $allowed_svg_tags = [
 /**
  * Sanitize SVG content using wp_kses whitelist
  */
-function icon_grid_sanitize_svg($svg_content) {
-    global $allowed_svg_tags;
-    return wp_kses($svg_content, $allowed_svg_tags);
+if (!function_exists('icon_grid_sanitize_svg')) {
+    function icon_grid_sanitize_svg($svg_content) {
+        global $allowed_svg_tags;
+        return wp_kses($svg_content, $allowed_svg_tags);
+    }
 }
 ?>
 
