@@ -859,6 +859,56 @@ export default function Edit({ attributes, setAttributes }) {
                                                         max={2}
                                                         step={0.05}
                                                     />
+                                                    <hr style={{ margin: '15px 0', borderColor: '#ddd' }} />
+                                                    <p style={{ fontWeight: '500', fontSize: '12px', marginBottom: '10px' }}>
+                                                        {__('Cell Size Override', 'icon-grid-unlimited')}
+                                                    </p>
+                                                    <RangeControl
+                                                        label={__('Cell Width (%)', 'icon-grid-unlimited')}
+                                                        value={perTileIconSettings[selectedTile]?.cellWidth || 100}
+                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellWidth', v)}
+                                                        min={20}
+                                                        max={400}
+                                                        step={5}
+                                                    />
+                                                    <RangeControl
+                                                        label={__('Cell Height (%)', 'icon-grid-unlimited')}
+                                                        value={perTileIconSettings[selectedTile]?.cellHeight || 100}
+                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellHeight', v)}
+                                                        min={20}
+                                                        max={400}
+                                                        step={5}
+                                                    />
+                                                    <ToggleControl
+                                                        label={__('Center Enlarged Cell', 'icon-grid-unlimited')}
+                                                        checked={perTileIconSettings[selectedTile]?.centerCell || false}
+                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'centerCell', v)}
+                                                        help={__('Translates cell to stay centered when enlarged', 'icon-grid-unlimited')}
+                                                    />
+                                                    <RangeControl
+                                                        label={__('Cell Offset X (%)', 'icon-grid-unlimited')}
+                                                        value={perTileIconSettings[selectedTile]?.cellOffsetX || 0}
+                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellOffsetX', v)}
+                                                        min={-100}
+                                                        max={100}
+                                                        step={1}
+                                                        help={__('Additional horizontal offset after centering', 'icon-grid-unlimited')}
+                                                    />
+                                                    <RangeControl
+                                                        label={__('Cell Offset Y (%)', 'icon-grid-unlimited')}
+                                                        value={perTileIconSettings[selectedTile]?.cellOffsetY || 0}
+                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellOffsetY', v)}
+                                                        min={-100}
+                                                        max={100}
+                                                        step={1}
+                                                        help={__('Additional vertical offset after centering', 'icon-grid-unlimited')}
+                                                    />
+                                                    <ToggleControl
+                                                        label={__('Scale Label with Cell', 'icon-grid-unlimited')}
+                                                        checked={perTileIconSettings[selectedTile]?.scaleLabel || false}
+                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'scaleLabel', v)}
+                                                        help={__('Label text scales proportionally with cell size', 'icon-grid-unlimited')}
+                                                    />
                                                 </>
                                             )}
                                         </div>

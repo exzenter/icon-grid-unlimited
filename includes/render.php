@@ -115,11 +115,51 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                 $tileScale = $settings['scale'] ?? 1;
                 $tileOffsetX = $settings['offsetX'] ?? 0;
                 $tileOffsetY = $settings['offsetY'] ?? 0;
-                $position = intval($tileIndex) + 1;
+                $cellWidth = $settings['cellWidth'] ?? 100;
+                $cellHeight = $settings['cellHeight'] ?? 100;
+                $centerCell = !empty($settings['centerCell']);
+                $cellOffsetX = $settings['cellOffsetX'] ?? 0;
+                $cellOffsetY = $settings['cellOffsetY'] ?? 0;
+                $scaleLabel = !empty($settings['scaleLabel']);
+                $storageIdx = intval($tileIndex);
+                
+                // Calculate centering translation if enabled
+                // CSS transform percentage is relative to the element's own size, not parent
+                // To move by X% of parent when element is W% of parent:
+                // translateX = X / (W/100) = X * 100 / W
+                // For centering: X = -(W-100)/2, so translateX = -(W-100)/2 * 100/W = -(W-100)*50/W
+                $centerTranslateX = $centerCell && $cellWidth > 0 ? -($cellWidth - 100) * 50 / $cellWidth : 0;
+                $centerTranslateY = $centerCell && $cellHeight > 0 ? -($cellHeight - 100) * 50 / $cellHeight : 0;
+                
+                // Add manual offset (convert from parent-relative to element-relative)
+                $manualTranslateX = $cellWidth > 0 ? $cellOffsetX * 100 / $cellWidth : 0;
+                $manualTranslateY = $cellHeight > 0 ? $cellOffsetY * 100 / $cellHeight : 0;
+                
+                // Total translation
+                $totalTranslateX = $centerTranslateX + $manualTranslateX;
+                $totalTranslateY = $centerTranslateY + $manualTranslateY;
+                
+                // Calculate label scale factor (average of width and height scale)
+                $labelScale = ($cellWidth + $cellHeight) / 200;
         ?>
-        #<?php echo esc_attr($block_id); ?> .icon-grid-cell-wrapper[data-position="<?php echo $position; ?>"] .icon-grid-cell > .icon-grid-wrapper svg {
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell-wrapper[data-storage-index="<?php echo $storageIdx; ?>"] .icon-grid-cell > .icon-grid-wrapper svg {
             transform: scale(<?php echo esc_attr($tileScale); ?>) translateX(<?php echo esc_attr($tileOffsetX); ?>%) translateY(<?php echo esc_attr($tileOffsetY); ?>%);
         }
+        <?php if ($cellWidth != 100 || $cellHeight != 100) : ?>
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell-wrapper[data-storage-index="<?php echo $storageIdx; ?>"] .icon-grid-cell {
+            width: <?php echo esc_attr($cellWidth); ?>%;
+            height: <?php echo esc_attr($cellHeight); ?>%;
+            z-index: 10;
+            <?php if ($centerCell || $cellOffsetX !== 0 || $cellOffsetY !== 0) : ?>
+            transform: translateX(<?php echo esc_attr($totalTranslateX); ?>%) translateY(<?php echo esc_attr($totalTranslateY); ?>%);
+            <?php endif; ?>
+        }
+        <?php if ($scaleLabel) : ?>
+        #<?php echo esc_attr($block_id); ?> .icon-grid-cell-wrapper[data-storage-index="<?php echo $storageIdx; ?>"] .icon-grid-label {
+            font-size: calc(clamp(8px, 1.5vw, 11px) * <?php echo esc_attr($labelScale); ?>);
+        }
+        <?php endif; ?>
+        <?php endif; ?>
         <?php 
             endif;
         endforeach; 

@@ -130,9 +130,11 @@ A full Gutenberg block is included in the main plugin directory.
 - **Timing Controls**: 1ms precision for all animation timings
 - **Transition Offset**: Overlap/delay between animation rounds (-3s to +3s)
 - **Per-Tile Icon Settings**: Individual offset and scale per icon
+- **Per-Tile Cell Size**: Width/height modifiers (20-400%), centering, manual offsets, label scaling
 - **Layout Settings**: Sticky toggle, vertical centering with target selector
 - **Popup Color Pickers**: Compact color selection for all color options
 - **Grid Editor Modal**: Visual 12x12 grid for tile configuration (out-of-bounds tiles greyed out)
+- **Block Tiles**: Embed Gutenberg blocks directly into tiles with hover animations
 
 ### Build
 
