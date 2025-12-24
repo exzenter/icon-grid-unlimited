@@ -2,7 +2,7 @@
  * Icon Grid Block - Editor Component
  */
 import { __ } from '@wordpress/i18n';
-import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls, MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
 import {
     PanelBody,
     RangeControl,
@@ -876,15 +876,57 @@ export default function Edit({ attributes, setAttributes }) {
                                             placeholder={__('e.g., Webdesign', 'icon-grid-unlimited')}
                                         />
 
-                                        <TextareaControl
-                                            label={__('SVG Path', 'icon-grid-unlimited')}
-                                            value={iconSvgs[selectedTile]}
-                                            onChange={(v) => updateSvg(selectedTile, v)}
-                                            placeholder={__('Paste SVG path here (e.g., <polygon points="..."/>)', 'icon-grid-unlimited')}
-                                            rows={4}
-                                            style={{ fontFamily: 'monospace', fontSize: '11px' }}
-                                            disabled={getTileBlockSettings(selectedTile).enabled}
-                                        />
+                                        <Flex gap={4} align="flex-start">
+                                            <FlexItem style={{ flex: 2 }}>
+                                                <TextareaControl
+                                                    label={__('SVG Path', 'icon-grid-unlimited')}
+                                                    value={iconSvgs[selectedTile]}
+                                                    onChange={(v) => updateSvg(selectedTile, v)}
+                                                    placeholder={__('Paste SVG path here (e.g., <polygon points="..."/>)', 'icon-grid-unlimited')}
+                                                    rows={4}
+                                                    style={{ fontFamily: 'monospace', fontSize: '11px' }}
+                                                    disabled={getTileBlockSettings(selectedTile).enabled}
+                                                />
+                                            </FlexItem>
+                                            <FlexItem style={{ flex: 1 }}>
+                                                <p style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>
+                                                    {__('Or select from Media', 'icon-grid-unlimited')}
+                                                </p>
+                                                <MediaUploadCheck>
+                                                    <MediaUpload
+                                                        onSelect={(media) => {
+                                                            // Fetch SVG content and extract inner elements
+                                                            if (media.url && media.url.endsWith('.svg')) {
+                                                                fetch(media.url)
+                                                                    .then(res => res.text())
+                                                                    .then(svg => {
+                                                                        // Extract content between <svg> tags
+                                                                        const match = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+                                                                        if (match && match[1]) {
+                                                                            updateSvg(selectedTile, match[1].trim());
+                                                                        }
+                                                                    })
+                                                                    .catch(err => console.error('Failed to load SVG:', err));
+                                                            }
+                                                        }}
+                                                        allowedTypes={['image/svg+xml']}
+                                                        render={({ open }) => (
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={open}
+                                                                disabled={getTileBlockSettings(selectedTile).enabled}
+                                                                style={{ width: '100%' }}
+                                                            >
+                                                                {__('Select SVG', 'icon-grid-unlimited')}
+                                                            </Button>
+                                                        )}
+                                                    />
+                                                </MediaUploadCheck>
+                                                <p style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
+                                                    {__('SVG must be uploaded to media library first', 'icon-grid-unlimited')}
+                                                </p>
+                                            </FlexItem>
+                                        </Flex>
 
                                         {/* Enable Block Section */}
                                         <div style={{ marginTop: '20px', padding: '12px', background: '#e8f4f8', borderRadius: '4px', border: '1px solid #b8dadd' }}>
@@ -937,22 +979,29 @@ export default function Edit({ attributes, setAttributes }) {
                                             />
                                             {perTileIconSettings[selectedTile]?.enabled && (
                                                 <>
-                                                    <RangeControl
-                                                        label={__('Icon X Offset (%)', 'icon-grid-unlimited')}
-                                                        value={perTileIconSettings[selectedTile]?.offsetX || 0}
-                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'offsetX', v)}
-                                                        min={-50}
-                                                        max={50}
-                                                        step={1}
-                                                    />
-                                                    <RangeControl
-                                                        label={__('Icon Y Offset (%)', 'icon-grid-unlimited')}
-                                                        value={perTileIconSettings[selectedTile]?.offsetY || 0}
-                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'offsetY', v)}
-                                                        min={-50}
-                                                        max={50}
-                                                        step={1}
-                                                    />
+                                                    {/* Icon Settings - 2 column grid */}
+                                                    <Flex gap={3} style={{ marginBottom: '8px' }}>
+                                                        <FlexItem style={{ flex: 1 }}>
+                                                            <RangeControl
+                                                                label={__('X Offset (%)', 'icon-grid-unlimited')}
+                                                                value={perTileIconSettings[selectedTile]?.offsetX || 0}
+                                                                onChange={(v) => updatePerTileSettings(selectedTile, 'offsetX', v)}
+                                                                min={-50}
+                                                                max={50}
+                                                                step={1}
+                                                            />
+                                                        </FlexItem>
+                                                        <FlexItem style={{ flex: 1 }}>
+                                                            <RangeControl
+                                                                label={__('Y Offset (%)', 'icon-grid-unlimited')}
+                                                                value={perTileIconSettings[selectedTile]?.offsetY || 0}
+                                                                onChange={(v) => updatePerTileSettings(selectedTile, 'offsetY', v)}
+                                                                min={-50}
+                                                                max={50}
+                                                                step={1}
+                                                            />
+                                                        </FlexItem>
+                                                    </Flex>
                                                     <RangeControl
                                                         label={__('Icon Scale', 'icon-grid-unlimited')}
                                                         value={perTileIconSettings[selectedTile]?.scale || 1}
@@ -961,55 +1010,68 @@ export default function Edit({ attributes, setAttributes }) {
                                                         max={2}
                                                         step={0.05}
                                                     />
-                                                    <hr style={{ margin: '15px 0', borderColor: '#ddd' }} />
-                                                    <p style={{ fontWeight: '500', fontSize: '12px', marginBottom: '10px' }}>
+
+                                                    <hr style={{ margin: '12px 0', borderColor: '#ddd' }} />
+                                                    <p style={{ fontWeight: '500', fontSize: '12px', marginBottom: '8px' }}>
                                                         {__('Cell Size Override', 'icon-grid-unlimited')}
                                                     </p>
-                                                    <RangeControl
-                                                        label={__('Cell Width (%)', 'icon-grid-unlimited')}
-                                                        value={perTileIconSettings[selectedTile]?.cellWidth || 100}
-                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellWidth', v)}
-                                                        min={20}
-                                                        max={400}
-                                                        step={5}
-                                                    />
-                                                    <RangeControl
-                                                        label={__('Cell Height (%)', 'icon-grid-unlimited')}
-                                                        value={perTileIconSettings[selectedTile]?.cellHeight || 100}
-                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellHeight', v)}
-                                                        min={20}
-                                                        max={400}
-                                                        step={5}
-                                                    />
+
+                                                    <Flex gap={3} style={{ marginBottom: '8px' }}>
+                                                        <FlexItem style={{ flex: 1 }}>
+                                                            <RangeControl
+                                                                label={__('Width (%)', 'icon-grid-unlimited')}
+                                                                value={perTileIconSettings[selectedTile]?.cellWidth || 100}
+                                                                onChange={(v) => updatePerTileSettings(selectedTile, 'cellWidth', v)}
+                                                                min={20}
+                                                                max={400}
+                                                                step={5}
+                                                            />
+                                                        </FlexItem>
+                                                        <FlexItem style={{ flex: 1 }}>
+                                                            <RangeControl
+                                                                label={__('Height (%)', 'icon-grid-unlimited')}
+                                                                value={perTileIconSettings[selectedTile]?.cellHeight || 100}
+                                                                onChange={(v) => updatePerTileSettings(selectedTile, 'cellHeight', v)}
+                                                                min={20}
+                                                                max={400}
+                                                                step={5}
+                                                            />
+                                                        </FlexItem>
+                                                    </Flex>
+
                                                     <ToggleControl
                                                         label={__('Center Enlarged Cell', 'icon-grid-unlimited')}
                                                         checked={perTileIconSettings[selectedTile]?.centerCell || false}
                                                         onChange={(v) => updatePerTileSettings(selectedTile, 'centerCell', v)}
-                                                        help={__('Translates cell to stay centered when enlarged', 'icon-grid-unlimited')}
                                                     />
-                                                    <RangeControl
-                                                        label={__('Cell Offset X (%)', 'icon-grid-unlimited')}
-                                                        value={perTileIconSettings[selectedTile]?.cellOffsetX || 0}
-                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellOffsetX', v)}
-                                                        min={-100}
-                                                        max={100}
-                                                        step={1}
-                                                        help={__('Additional horizontal offset after centering', 'icon-grid-unlimited')}
-                                                    />
-                                                    <RangeControl
-                                                        label={__('Cell Offset Y (%)', 'icon-grid-unlimited')}
-                                                        value={perTileIconSettings[selectedTile]?.cellOffsetY || 0}
-                                                        onChange={(v) => updatePerTileSettings(selectedTile, 'cellOffsetY', v)}
-                                                        min={-100}
-                                                        max={100}
-                                                        step={1}
-                                                        help={__('Additional vertical offset after centering', 'icon-grid-unlimited')}
-                                                    />
+
+                                                    <Flex gap={3} style={{ marginBottom: '8px' }}>
+                                                        <FlexItem style={{ flex: 1 }}>
+                                                            <RangeControl
+                                                                label={__('Offset X (%)', 'icon-grid-unlimited')}
+                                                                value={perTileIconSettings[selectedTile]?.cellOffsetX || 0}
+                                                                onChange={(v) => updatePerTileSettings(selectedTile, 'cellOffsetX', v)}
+                                                                min={-100}
+                                                                max={100}
+                                                                step={1}
+                                                            />
+                                                        </FlexItem>
+                                                        <FlexItem style={{ flex: 1 }}>
+                                                            <RangeControl
+                                                                label={__('Offset Y (%)', 'icon-grid-unlimited')}
+                                                                value={perTileIconSettings[selectedTile]?.cellOffsetY || 0}
+                                                                onChange={(v) => updatePerTileSettings(selectedTile, 'cellOffsetY', v)}
+                                                                min={-100}
+                                                                max={100}
+                                                                step={1}
+                                                            />
+                                                        </FlexItem>
+                                                    </Flex>
+
                                                     <ToggleControl
                                                         label={__('Scale Label with Cell', 'icon-grid-unlimited')}
                                                         checked={perTileIconSettings[selectedTile]?.scaleLabel || false}
                                                         onChange={(v) => updatePerTileSettings(selectedTile, 'scaleLabel', v)}
-                                                        help={__('Label text scales proportionally with cell size', 'icon-grid-unlimited')}
                                                     />
                                                 </>
                                             )}
