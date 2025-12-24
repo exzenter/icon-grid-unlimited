@@ -2,7 +2,8 @@
  * Icon Grid Block - Editor Component
  */
 import { __ } from '@wordpress/i18n';
-import { useBlockProps, InspectorControls, MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls, MediaUpload, MediaUploadCheck, InnerBlocks } from '@wordpress/block-editor';
+import { serialize, parse } from '@wordpress/blocks';
 import {
     PanelBody,
     RangeControl,
@@ -80,6 +81,7 @@ export default function Edit({ attributes, setAttributes }) {
     const [selectedTile, setSelectedTile] = useState(null);
     const [roundsText, setRoundsText] = useState(JSON.stringify(animationRounds, null, 2));
     const [dragFromTile, setDragFromTile] = useState(null);
+    const [blockEditorTile, setBlockEditorTile] = useState(null); // Tile index for block editor modal
 
     const blockProps = useBlockProps({
         className: 'icon-grid-unlimited-editor'
@@ -938,17 +940,43 @@ export default function Edit({ attributes, setAttributes }) {
                                             />
                                             {getTileBlockSettings(selectedTile).enabled && (
                                                 <>
-                                                    <TextareaControl
-                                                        label={__('Block HTML', 'icon-grid-unlimited')}
-                                                        value={tileBlocks[selectedTile] || ''}
-                                                        onChange={(v) => updateTileBlock(selectedTile, v)}
-                                                        placeholder={__('Paste block HTML here (e.g., <div class="...">content</div>)', 'icon-grid-unlimited')}
-                                                        rows={6}
-                                                        style={{ fontFamily: 'monospace', fontSize: '11px' }}
-                                                    />
-                                                    <p style={{ fontSize: '11px', color: '#666', marginTop: '-8px', marginBottom: '12px' }}>
-                                                        {__('Tip: Use the block editor to create content, then copy the HTML and paste here.', 'icon-grid-unlimited')}
-                                                    </p>
+                                                    <Flex gap={2} style={{ marginBottom: '12px' }}>
+                                                        <FlexItem>
+                                                            <Button
+                                                                variant="primary"
+                                                                onClick={() => setBlockEditorTile(selectedTile)}
+                                                            >
+                                                                {tileBlocks[selectedTile] ? __('Edit Block', 'icon-grid-unlimited') : __('Add Block', 'icon-grid-unlimited')}
+                                                            </Button>
+                                                        </FlexItem>
+                                                        {tileBlocks[selectedTile] && (
+                                                            <FlexItem>
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    isDestructive
+                                                                    onClick={() => updateTileBlock(selectedTile, '')}
+                                                                >
+                                                                    {__('Clear', 'icon-grid-unlimited')}
+                                                                </Button>
+                                                            </FlexItem>
+                                                        )}
+                                                    </Flex>
+                                                    {tileBlocks[selectedTile] && (
+                                                        <div style={{
+                                                            padding: '8px',
+                                                            background: '#fff',
+                                                            border: '1px solid #ddd',
+                                                            borderRadius: '4px',
+                                                            marginBottom: '12px',
+                                                            fontSize: '11px',
+                                                            fontFamily: 'monospace',
+                                                            maxHeight: '80px',
+                                                            overflow: 'auto'
+                                                        }}>
+                                                            {tileBlocks[selectedTile].substring(0, 200)}
+                                                            {tileBlocks[selectedTile].length > 200 && '...'}
+                                                        </div>
+                                                    )}
                                                     <h4 style={{ marginBottom: '8px' }}>{__('Hover Animation Options', 'icon-grid-unlimited')}</h4>
                                                     <ToggleControl
                                                         label={__('Opacity fade (0.3 → 1.0)', 'icon-grid-unlimited')}
@@ -1113,6 +1141,54 @@ export default function Edit({ attributes, setAttributes }) {
                             setGridModalOpen(false);
                             setSelectedTile(null);
                         }}>
+                        </Button>
+                    </Flex>
+                </Modal>
+            )}
+
+            {/* Block Editor Modal */}
+            {blockEditorTile !== null && (
+                <Modal
+                    title={__('Edit Block Content', 'icon-grid-unlimited') + ` - Tile ${blockEditorTile + 1}`}
+                    onRequestClose={() => setBlockEditorTile(null)}
+                    className="icon-grid-block-editor-modal"
+                    style={{ maxWidth: '800px', width: '100%', minHeight: '500px' }}
+                >
+                    <div style={{ marginBottom: '15px' }}>
+                        <p style={{ color: '#666', fontSize: '13px' }}>
+                            {__('Add blocks below. They will be rendered inside the tile on the frontend.', 'icon-grid-unlimited')}
+                        </p>
+                    </div>
+
+                    <div style={{
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        padding: '20px',
+                        minHeight: '300px',
+                        background: '#fff'
+                    }}>
+                        <TextareaControl
+                            label={__('Block HTML / Shortcode', 'icon-grid-unlimited')}
+                            value={tileBlocks[blockEditorTile] || ''}
+                            onChange={(v) => updateTileBlock(blockEditorTile, v)}
+                            placeholder={__('Paste block HTML, shortcodes, or any HTML content here.\n\nExamples:\n• [my_shortcode]\n• <div class="my-block">Content</div>\n• <!-- wp:image {"id":123} --><figure>...</figure><!-- /wp:image -->', 'icon-grid-unlimited')}
+                            rows={12}
+                            style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                        />
+                    </div>
+
+                    <Flex justify="flex-end" style={{ marginTop: '20px' }}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setBlockEditorTile(null)}
+                        >
+                            {__('Cancel', 'icon-grid-unlimited')}
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={() => setBlockEditorTile(null)}
+                            style={{ marginLeft: '8px' }}
+                        >
                             {__('Done', 'icon-grid-unlimited')}
                         </Button>
                     </Flex>
