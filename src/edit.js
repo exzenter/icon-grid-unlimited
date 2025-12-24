@@ -79,6 +79,7 @@ export default function Edit({ attributes, setAttributes }) {
     const [isRoundsModalOpen, setRoundsModalOpen] = useState(false);
     const [selectedTile, setSelectedTile] = useState(null);
     const [roundsText, setRoundsText] = useState(JSON.stringify(animationRounds, null, 2));
+    const [dragFromTile, setDragFromTile] = useState(null);
 
     const blockProps = useBlockProps({
         className: 'icon-grid-unlimited-editor'
@@ -145,6 +146,57 @@ export default function Edit({ attributes, setAttributes }) {
     // Get tile block settings with defaults
     const getTileBlockSettings = (index) => {
         return tileBlockSettings[index] || { enabled: false, hoverOpacity: true, hoverScale: false, showLabel: true };
+    };
+
+    // Move all settings from one tile to another (for drag-and-drop)
+    const moveTileSettings = (fromIndex, toIndex) => {
+        if (fromIndex === toIndex) return;
+
+        // Copy labels
+        const newLabels = [...iconLabels];
+        newLabels[toIndex] = iconLabels[fromIndex] || '';
+        newLabels[fromIndex] = '';
+
+        // Copy SVGs
+        const newSvgs = [...iconSvgs];
+        newSvgs[toIndex] = iconSvgs[fromIndex] || '';
+        newSvgs[fromIndex] = '';
+
+        // Copy perTileIconSettings
+        const newPerTileSettings = { ...perTileIconSettings };
+        if (perTileIconSettings[fromIndex]) {
+            newPerTileSettings[toIndex] = { ...perTileIconSettings[fromIndex] };
+            delete newPerTileSettings[fromIndex];
+        } else {
+            delete newPerTileSettings[toIndex];
+        }
+
+        // Copy tileBlockSettings
+        const newBlockSettings = { ...tileBlockSettings };
+        if (tileBlockSettings[fromIndex]) {
+            newBlockSettings[toIndex] = { ...tileBlockSettings[fromIndex] };
+            delete newBlockSettings[fromIndex];
+        } else {
+            delete newBlockSettings[toIndex];
+        }
+
+        // Copy tileBlocks content
+        const newBlocks = { ...tileBlocks };
+        if (tileBlocks[fromIndex]) {
+            newBlocks[toIndex] = tileBlocks[fromIndex];
+            delete newBlocks[fromIndex];
+        } else {
+            delete newBlocks[toIndex];
+        }
+
+        // Update all at once
+        setAttributes({
+            iconLabels: newLabels,
+            iconSvgs: newSvgs,
+            perTileIconSettings: newPerTileSettings,
+            tileBlockSettings: newBlockSettings,
+            tileBlocks: newBlocks
+        });
     };
 
     // Parse and save animation rounds
@@ -701,31 +753,56 @@ export default function Edit({ attributes, setAttributes }) {
                                     return (
                                         <div
                                             key={storageIndex}
+                                            draggable={hasContent}
+                                            onDragStart={(e) => {
+                                                if (hasContent) {
+                                                    setDragFromTile(storageIndex);
+                                                    e.dataTransfer.effectAllowed = 'move';
+                                                }
+                                            }}
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                e.dataTransfer.dropEffect = 'move';
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                if (dragFromTile !== null && dragFromTile !== storageIndex) {
+                                                    moveTileSettings(dragFromTile, storageIndex);
+                                                }
+                                                setDragFromTile(null);
+                                            }}
+                                            onDragEnd={() => setDragFromTile(null)}
                                             onClick={() => setSelectedTile(storageIndex)}
                                             style={{
                                                 width: '28px',
                                                 height: '28px',
                                                 border: selectedTile === storageIndex
                                                     ? '2px solid #007cba'
-                                                    : isInBounds
-                                                        ? '1px solid #ddd'
-                                                        : '1px solid #eee',
+                                                    : dragFromTile === storageIndex
+                                                        ? '2px dashed #ff9800'
+                                                        : isInBounds
+                                                            ? '1px solid #ddd'
+                                                            : '1px solid #eee',
                                                 borderRadius: '3px',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 fontSize: '8px',
                                                 textAlign: 'center',
-                                                cursor: 'pointer',
-                                                background: !isInBounds
-                                                    ? (hasContent ? '#fff3e0' : '#f5f5f5')
-                                                    : (hasContent ? '#e7f3ff' : '#fafafa'),
-                                                opacity: isInBounds ? 1 : 0.5,
+                                                cursor: hasContent ? 'grab' : 'pointer',
+                                                background: dragFromTile !== null && dragFromTile !== storageIndex
+                                                    ? '#fffde7'  // Highlight potential drop targets
+                                                    : !isInBounds
+                                                        ? (hasContent ? '#fff3e0' : '#f5f5f5')
+                                                        : (hasContent ? '#e7f3ff' : '#fafafa'),
+                                                opacity: dragFromTile === storageIndex ? 0.5 : (isInBounds ? 1 : 0.5),
                                                 padding: '1px',
                                                 overflow: 'hidden',
-                                                color: hasContent ? '#007cba' : '#999'
+                                                color: hasContent ? '#007cba' : '#999',
+                                                outline: dragFromTile !== null && dragFromTile !== storageIndex && isInBounds ? '2px dashed #4caf50' : 'none',
+                                                outlineOffset: '-2px'
                                             }}
-                                            title={`Storage ${storageIndex + 1} (Row ${row + 1}, Col ${col + 1})${isInBounds ? '' : ' - outside grid'}${label ? ': ' + label : ''}`}
+                                            title={`${hasContent ? 'Drag to move • ' : ''}Storage ${storageIndex + 1} (Row ${row + 1}, Col ${col + 1})${isInBounds ? '' : ' - outside grid'}${label ? ': ' + label : ''}`}
                                         >
                                             {displayNumber || '·'}
                                         </div>
@@ -733,7 +810,7 @@ export default function Edit({ attributes, setAttributes }) {
                                 })}
                             </div>
                             <p style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
-                                {__('Greyed tiles are outside current grid but data is preserved', 'icon-grid-unlimited')}
+                                {__('Drag tiles to move settings • Greyed tiles are outside current grid', 'icon-grid-unlimited')}
                             </p>
                         </FlexItem>
 

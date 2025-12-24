@@ -133,7 +133,7 @@ A full Gutenberg block is included in the main plugin directory.
 - **Per-Tile Cell Size**: Width/height modifiers (20-400%), centering, manual offsets, label scaling
 - **Layout Settings**: Sticky toggle, vertical centering with target selector
 - **Popup Color Pickers**: Compact color selection for all color options
-- **Grid Editor Modal**: Visual 12x12 grid for tile configuration (out-of-bounds tiles greyed out)
+- **Grid Editor Modal**: Visual 12x12 grid with drag-and-drop tile reordering
 - **Block Tiles**: Embed Gutenberg blocks directly into tiles with hover animations
 
 ### Build
