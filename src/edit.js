@@ -233,6 +233,27 @@ export default function Edit({ attributes, setAttributes }) {
     return (
         <>
             <InspectorControls>
+                {/* Quick Access Buttons - Always Visible */}
+                <div style={{ padding: '16px', borderBottom: '1px solid #ddd', display: 'flex', gap: '8px' }}>
+                    <Button
+                        variant="primary"
+                        onClick={() => setGridModalOpen(true)}
+                        style={{ flex: 1 }}
+                    >
+                        {__('Grid Editor', 'icon-grid-unlimited')}
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            setRoundsText(JSON.stringify(animationRounds, null, 2));
+                            setRoundsModalOpen(true);
+                        }}
+                        style={{ flex: 1 }}
+                    >
+                        {__('Animation Rounds', 'icon-grid-unlimited')}
+                    </Button>
+                </div>
+
                 {/* Grid Size Control */}
                 <PanelBody title={__('Grid Size', 'icon-grid-unlimited')} initialOpen={true}>
                     <Flex gap={4}>
@@ -631,7 +652,7 @@ export default function Edit({ attributes, setAttributes }) {
                     title={__('Animation Rounds Editor', 'icon-grid-unlimited')}
                     onRequestClose={() => setRoundsModalOpen(false)}
                     className="icon-grid-rounds-modal"
-                    style={{ maxWidth: '900px', width: '100%' }}
+                    style={{ maxWidth: '1170px', width: '100%' }}
                 >
                     <Flex>
                         {/* Helper Grid */}
@@ -728,7 +749,7 @@ export default function Edit({ attributes, setAttributes }) {
                         setSelectedTile(null);
                     }}
                     className="icon-grid-editor-modal"
-                    style={{ maxWidth: '1000px', width: '100%' }}
+                    style={{ maxWidth: '1300px', width: '100%' }}
                 >
                     <Flex>
                         {/* Grid Preview - always 12x12 */}
@@ -753,12 +774,15 @@ export default function Edit({ attributes, setAttributes }) {
                                     return (
                                         <div
                                             key={storageIndex}
-                                            draggable={hasContent}
+                                            draggable={hasContent ? "true" : "false"}
                                             onDragStart={(e) => {
-                                                if (hasContent) {
-                                                    setDragFromTile(storageIndex);
-                                                    e.dataTransfer.effectAllowed = 'move';
+                                                if (!hasContent) {
+                                                    e.preventDefault();
+                                                    return;
                                                 }
+                                                setDragFromTile(storageIndex);
+                                                e.dataTransfer.effectAllowed = 'move';
+                                                e.dataTransfer.setData('text/plain', storageIndex.toString());
                                             }}
                                             onDragOver={(e) => {
                                                 e.preventDefault();
@@ -800,7 +824,8 @@ export default function Edit({ attributes, setAttributes }) {
                                                 overflow: 'hidden',
                                                 color: hasContent ? '#007cba' : '#999',
                                                 outline: dragFromTile !== null && dragFromTile !== storageIndex && isInBounds ? '2px dashed #4caf50' : 'none',
-                                                outlineOffset: '-2px'
+                                                outlineOffset: '-2px',
+                                                userSelect: 'none'
                                             }}
                                             title={`${hasContent ? 'Drag to move • ' : ''}Storage ${storageIndex + 1} (Row ${row + 1}, Col ${col + 1})${isInBounds ? '' : ' - outside grid'}${label ? ': ' + label : ''}`}
                                         >
