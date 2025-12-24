@@ -112,7 +112,7 @@ stopHighlightLoop()        // Stop auto-highlight
 ## Tech Stack
 
 - HTML5 / CSS3
-- GSAP 3.12.5 (CDN)
+- anime.js 3.2.2 (CDN) - MIT licensed, ~17KB
 - Vanilla JavaScript
 - Schema.org Structured Data
 

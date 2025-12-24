@@ -22,15 +22,15 @@ function icon_grid_unlimited_init() {
 add_action('init', 'icon_grid_unlimited_init');
 
 /**
- * Enqueue GSAP for frontend
+ * Enqueue anime.js for frontend (MIT licensed, ~17KB vs GSAP's 60KB)
  */
 function icon_grid_unlimited_enqueue_assets() {
     if (has_block('icon-grid-unlimited/icon-grid')) {
         wp_enqueue_script(
-            'gsap',
-            'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',
+            'animejs',
+            'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js',
             [],
-            '3.12.5',
+            '3.2.2',
             true
         );
     }

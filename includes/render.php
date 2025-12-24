@@ -550,12 +550,13 @@ if (!empty($structuredData['itemListElement'])):
             // Animate the cell inside with random stagger like entrance animation
             const cell = tile.querySelector('.icon-grid-cell');
             if (cell) {
-                const randomDelay = Math.random() * 1.5; // Same as entrance animation
-                gsap.to(cell, {
+                const randomDelay = Math.random() * 1500; // Same as entrance animation (ms)
+                anime({
+                    targets: cell,
                     opacity: 1,
-                    duration: 0.35,
+                    duration: 350,
                     delay: randomDelay,
-                    ease: 'power2.out'
+                    easing: 'easeOutQuad'
                 });
             }
         });
@@ -704,11 +705,12 @@ if (!empty($structuredData['itemListElement'])):
     const isSafari = hasSafari ? !hasChrome : false;
 
     function animateLineIn(connection) {
-        gsap.to(connection.pathElement, {
+        anime({
+            targets: connection.pathElement,
             strokeDashoffset: 0,
-            duration: CONFIG.lineDrawDuration,
-            ease: 'power2.inOut',
-            autoRound: false
+            duration: CONFIG.lineDrawDuration * 1000,
+            easing: 'easeInOutQuad',
+            round: false
         });
     }
     
@@ -717,12 +719,13 @@ if (!empty($structuredData['itemListElement'])):
         // Chrome/Firefox/Edge: shrink towards end (negative offset)
         const targetOffset = isSafari ? connection.pathLength : -connection.pathLength;
         
-        gsap.to(connection.pathElement, {
+        anime({
+            targets: connection.pathElement,
             strokeDashoffset: targetOffset,
-            duration: CONFIG.lineDrawDuration,
-            ease: 'power2.inOut',
-            autoRound: false,
-            onComplete: () => {
+            duration: CONFIG.lineDrawDuration * 1000,
+            easing: 'easeInOutQuad',
+            round: false,
+            complete: () => {
                 connection.pathElement.style.visibility = 'hidden';
             }
         });
@@ -738,17 +741,18 @@ if (!empty($structuredData['itemListElement'])):
         
         if (label) label.style.visibility = 'visible';
         
-        gsap.to(cellBg, {
+        anime({
+            targets: cellBg,
             scale: CONFIG.hoverScale || 1.08,
             backgroundColor: CONFIG.hoverBgColor || '#fff',
             boxShadow: '0 8px 10px rgba(0,0,0,0.10)',
             borderWidth: 0,
-            duration: CONFIG.cellAnimDuration,
-            ease: 'back.out(1.5)'
+            duration: CONFIG.cellAnimDuration * 1000,
+            easing: 'easeOutBack'
         });
-        if (wrapper) gsap.to(wrapper, { y: (CONFIG.hoverSlideAmount || -10) + '%', duration: CONFIG.cellAnimDuration, ease: 'back.out(1.5)' });
-        if (wireframe) gsap.to(wireframe, { opacity: 0, duration: CONFIG.cellAnimDuration, ease: 'power2.out' });
-        if (gradient) gsap.to(gradient, { opacity: 1, duration: CONFIG.cellAnimDuration, ease: 'power2.out' });
+        if (wrapper) anime({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutBack' });
+        if (wireframe) anime({ targets: wireframe, opacity: 0, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
+        if (gradient) anime({ targets: gradient, opacity: 1, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
     }
     
     function unhighlightCell(cell) {
@@ -764,17 +768,18 @@ if (!empty($structuredData['itemListElement'])):
         
         if (label) label.style.visibility = '';
         
-        gsap.to(cellBg, {
+        anime({
+            targets: cellBg,
             scale: 1,
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
+            backgroundColor: 'rgba(0,0,0,0)',
+            boxShadow: '0 0 0 rgba(0,0,0,0)',
             borderWidth: 1,
-            duration: CONFIG.cellAnimDuration,
-            ease: 'power2.inOut'
+            duration: CONFIG.cellAnimDuration * 1000,
+            easing: 'easeInOutQuad'
         });
-        if (wrapper) gsap.to(wrapper, { y: '0%', duration: CONFIG.cellAnimDuration, ease: 'power2.inOut' });
-        if (wireframe) gsap.to(wireframe, { opacity: 1, duration: CONFIG.cellAnimDuration, ease: 'power2.out' });
-        if (gradient) gsap.to(gradient, { opacity: 0, duration: CONFIG.cellAnimDuration, ease: 'power2.out' });
+        if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: CONFIG.cellAnimDuration * 1000, easing: 'easeInOutQuad' });
+        if (wireframe) anime({ targets: wireframe, opacity: 1, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
+        if (gradient) anime({ targets: gradient, opacity: 0, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
     }
     
     function playNextRound() {
@@ -877,12 +882,13 @@ if (!empty($structuredData['itemListElement'])):
         // Select only cells that are NOT inside expansion tiles
         const cells = Array.from(container.querySelectorAll('.icon-grid-cell-wrapper:not(.expansion-tile) .icon-grid-cell'));
         cells.forEach(cell => {
-            const randomDelay = Math.random() * 1.5;
-            gsap.to(cell, {
+            const randomDelay = Math.random() * 1500;
+            anime({
+                targets: cell,
                 opacity: 1,
-                duration: 0.35,
+                duration: 350,
                 delay: randomDelay,
-                ease: 'power2.out'
+                easing: 'easeOutQuad'
             });
         });
         
@@ -904,12 +910,12 @@ if (!empty($structuredData['itemListElement'])):
         
         cell.addEventListener('mouseenter', () => {
             // Kill any in-progress animations to prevent conflicts
-            gsap.killTweensOf([cellBg, wrapper, wireframe, gradient]);
+            anime.remove([cellBg, wrapper, wireframe, gradient]);
             
-            gsap.to(cellBg, { scale: CONFIG.hoverScale || 1.08, backgroundColor: CONFIG.hoverBgColor || '#fff', boxShadow: '0 8px 10px rgba(0,0,0,0.10)', borderWidth: 0, duration: 0.3, ease: 'back.out(1.5)' });
-            if (wrapper) gsap.to(wrapper, { y: (CONFIG.hoverSlideAmount || -10) + '%', duration: 0.3, ease: 'back.out(1.5)' });
-            if (wireframe) gsap.to(wireframe, { opacity: 0, duration: 0.25, ease: 'power2.out' });
-            if (gradient) gsap.to(gradient, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+            anime({ targets: cellBg, scale: CONFIG.hoverScale || 1.08, backgroundColor: CONFIG.hoverBgColor || '#fff', boxShadow: '0 8px 10px rgba(0,0,0,0.10)', borderWidth: 0, duration: 300, easing: 'easeOutBack' });
+            if (wrapper) anime({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: 300, easing: 'easeOutBack' });
+            if (wireframe) anime({ targets: wireframe, opacity: 0, duration: 250, easing: 'easeOutQuad' });
+            if (gradient) anime({ targets: gradient, opacity: 1, duration: 250, easing: 'easeOutQuad' });
             if (label) label.style.visibility = 'visible';
         });
         
@@ -917,12 +923,12 @@ if (!empty($structuredData['itemListElement'])):
             if (currentlyHighlighted.includes(cell)) return;
             
             // Kill any in-progress animations to prevent conflicts
-            gsap.killTweensOf([cellBg, wrapper, wireframe, gradient]);
+            anime.remove([cellBg, wrapper, wireframe, gradient]);
             
-            gsap.to(cellBg, { scale: 1, backgroundColor: 'transparent', boxShadow: 'none', borderWidth: 1, duration: 0.25, ease: 'power2.out' });
-            if (wrapper) gsap.to(wrapper, { y: '0%', duration: 0.25, ease: 'power2.out' });
-            if (wireframe) gsap.to(wireframe, { opacity: 1, duration: 0.25, ease: 'power2.out' });
-            if (gradient) gsap.to(gradient, { opacity: 0, duration: 0.25, ease: 'power2.out' });
+            anime({ targets: cellBg, scale: 1, backgroundColor: 'rgba(0,0,0,0)', boxShadow: '0 0 0 rgba(0,0,0,0)', borderWidth: 1, duration: 250, easing: 'easeOutQuad' });
+            if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: 250, easing: 'easeOutQuad' });
+            if (wireframe) anime({ targets: wireframe, opacity: 1, duration: 250, easing: 'easeOutQuad' });
+            if (gradient) anime({ targets: gradient, opacity: 0, duration: 250, easing: 'easeOutQuad' });
             if (label) label.style.visibility = '';
         });
     });
@@ -934,7 +940,7 @@ if (!empty($structuredData['itemListElement'])):
         if (hasAnimated) return;
         hasAnimated = true;
         
-        if (typeof gsap !== 'undefined') {
+        if (typeof anime !== 'undefined') {
             playEntranceAnimation();
         } else {
             window.addEventListener('load', playEntranceAnimation);
