@@ -26,6 +26,53 @@ $default_gradients = [
     ['#20bf6b', '#26de81'],
     ['#fc5c65', '#fd9644'],
 ];
+
+// SVG sanitization - whitelist of allowed tags and attributes
+$allowed_svg_tags = [
+    'path' => [
+        'd' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+        'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true,
+        'opacity' => true, 'fill-opacity' => true, 'stroke-opacity' => true,
+        'class' => true, 'id' => true
+    ],
+    'circle' => [
+        'cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true,
+        'stroke-width' => true, 'transform' => true, 'opacity' => true, 'class' => true
+    ],
+    'ellipse' => [
+        'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true,
+        'stroke' => true, 'stroke-width' => true, 'transform' => true, 'class' => true
+    ],
+    'rect' => [
+        'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true,
+        'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+        'transform' => true, 'class' => true
+    ],
+    'polygon' => [
+        'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+        'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true, 'class' => true
+    ],
+    'polyline' => [
+        'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+        'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true, 'class' => true
+    ],
+    'line' => [
+        'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true,
+        'stroke-width' => true, 'stroke-linecap' => true, 'transform' => true, 'class' => true
+    ],
+    'g' => [
+        'fill' => true, 'stroke' => true, 'transform' => true, 'opacity' => true,
+        'class' => true, 'id' => true
+    ],
+];
+
+/**
+ * Sanitize SVG content using wp_kses whitelist
+ */
+function icon_grid_sanitize_svg($svg_content) {
+    global $allowed_svg_tags;
+    return wp_kses($svg_content, $allowed_svg_tags);
+}
 ?>
 
 <?php
@@ -250,7 +297,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                                 <div class="icon-grid-wrapper">
                                     <?php if (!empty($svgPath)): ?>
                                         <svg class="icon-grid-wireframe" viewBox="0 0 64 64" aria-label="<?php echo esc_attr($label . ' Icon'); ?>" role="img">
-                                            <?php echo $svgPath; ?>
+                                            <?php echo icon_grid_sanitize_svg($svgPath); ?>
                                     </svg>
                                     <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
                                         <defs>
@@ -260,7 +307,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                                             </linearGradient>
                                         </defs>
                                         <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
-                                            <?php echo $svgPath; ?>
+                                            <?php echo icon_grid_sanitize_svg($svgPath); ?>
                                         </g>
                                     </svg>
                                 <?php endif; ?>
@@ -348,7 +395,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                                 <div class="icon-grid-wrapper">
                                     <?php if (!empty($svgPath)): ?>
                                         <svg class="icon-grid-wireframe" viewBox="0 0 64 64" aria-label="<?php echo esc_attr($label . ' Icon'); ?>" role="img">
-                                            <?php echo $svgPath; ?>
+                                            <?php echo icon_grid_sanitize_svg($svgPath); ?>
                                     </svg>
                                     <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
                                         <defs>
@@ -358,7 +405,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                                             </linearGradient>
                                         </defs>
                                         <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
-                                            <?php echo $svgPath; ?>
+                                            <?php echo icon_grid_sanitize_svg($svgPath); ?>
                                         </g>
                                     </svg>
                                 <?php endif; ?>
