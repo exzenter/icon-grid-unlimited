@@ -780,7 +780,7 @@ if (!empty($structuredData['itemListElement'])):
         anime({
             targets: cellBg,
             scale: 1,
-            backgroundColor: 'rgba(0,0,0,0)',
+            backgroundColor: 'rgba(255,255,255,0)',
             boxShadow: '0 0 0 rgba(0,0,0,0)',
             borderWidth: 1,
             duration: CONFIG.cellAnimDuration * 1000,
@@ -937,7 +937,7 @@ if (!empty($structuredData['itemListElement'])):
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
             
-            anime({ targets: cellBg, scale: 1, backgroundColor: 'rgba(0,0,0,0)', boxShadow: '0 0 0 rgba(0,0,0,0)', borderWidth: 1, duration: 250, easing: 'easeOutQuad' });
+            anime({ targets: cellBg, scale: 1, backgroundColor: 'rgba(255,255,255,0)', boxShadow: '0 0 0 rgba(0,0,0,0)', borderWidth: 1, duration: 250, easing: 'easeOutQuad' });
             if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: 250, easing: 'easeOutQuad' });
             if (wireframe) anime({ targets: wireframe, opacity: 1, duration: 250, easing: 'easeOutQuad' });
             if (gradient) anime({ targets: gradient, opacity: 0, duration: 250, easing: 'easeOutQuad' });
