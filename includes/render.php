@@ -104,6 +104,8 @@ $inactiveStrokeColor = $attributes['config']['inactiveStrokeColor'] ?? '#333333'
 $inactiveStrokeWidth = $attributes['config']['inactiveStrokeWidth'] ?? 1.5;
 $iconOffsetX = $attributes['config']['iconOffsetX'] ?? 0;
 $iconOffsetY = $attributes['config']['iconOffsetY'] ?? 0;
+$inactiveGlass = $attributes['config']['inactiveGlass'] ?? false;
+$inactiveGlassBlur = $attributes['config']['inactiveGlassBlur'] ?? 10;
 $perTileIconSettings = $attributes['perTileIconSettings'] ?? [];
 $tileBlockSettings = $attributes['tileBlockSettings'] ?? [];
 $tileBlocks = $attributes['tileBlocks'] ?? [];
@@ -129,6 +131,11 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
         }
         #<?php echo esc_attr($block_id); ?> .icon-grid-cell-bg {
             border-color: <?php echo esc_attr($inactiveBorderColor); ?>;
+            <?php if ($inactiveGlass): ?>
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(<?php echo esc_attr($inactiveGlassBlur); ?>px);
+            -webkit-backdrop-filter: blur(<?php echo esc_attr($inactiveGlassBlur); ?>px);
+            <?php endif; ?>
         }
         #<?php echo esc_attr($block_id); ?> .icon-grid-cell > .icon-grid-wrapper svg {
             transform: scale(<?php echo esc_attr($iconScale); ?>) translateX(<?php echo esc_attr($iconOffsetX); ?>%) translateY(<?php echo esc_attr($iconOffsetY); ?>%);
@@ -753,6 +760,7 @@ if (!empty($structuredData['itemListElement'])):
             backgroundColor: CONFIG.hoverBgColor || '#fff',
             boxShadow: '0 8px 10px rgba(0,0,0,0.10)',
             borderWidth: 0,
+            backdropFilter: CONFIG.hoverGlass ? `blur(${CONFIG.hoverGlassBlur || 10}px)` : (CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)'),
             duration: CONFIG.cellAnimDuration * 1000,
             easing: 'easeOutBack'
         });
@@ -783,6 +791,7 @@ if (!empty($structuredData['itemListElement'])):
             backgroundColor: 'rgba(255,255,255,0)',
             boxShadow: '0 0 0 rgba(0,0,0,0)',
             borderWidth: 1,
+            backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
             duration: CONFIG.cellAnimDuration * 1000,
             easing: 'easeInOutQuad'
         });
@@ -924,7 +933,16 @@ if (!empty($structuredData['itemListElement'])):
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
             
-            anime({ targets: cellBg, scale: CONFIG.hoverScale || 1.08, backgroundColor: CONFIG.hoverBgColor || '#fff', boxShadow: '0 8px 10px rgba(0,0,0,0.10)', borderWidth: 0, duration: 300, easing: 'easeOutBack' });
+            anime({ 
+                targets: cellBg, 
+                scale: CONFIG.hoverScale || 1.08, 
+                backgroundColor: CONFIG.hoverBgColor || '#fff', 
+                boxShadow: '0 8px 10px rgba(0,0,0,0.10)', 
+                borderWidth: 0, 
+                backdropFilter: CONFIG.hoverGlass ? `blur(${CONFIG.hoverGlassBlur || 10}px)` : (CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)'),
+                duration: 300, 
+                easing: 'easeOutBack' 
+            });
             if (wrapper) anime({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: 300, easing: 'easeOutBack' });
             if (wireframe) anime({ targets: wireframe, opacity: 0, duration: 250, easing: 'easeOutQuad' });
             if (gradient) anime({ targets: gradient, opacity: 1, duration: 250, easing: 'easeOutQuad' });
@@ -937,7 +955,16 @@ if (!empty($structuredData['itemListElement'])):
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
             
-            anime({ targets: cellBg, scale: 1, backgroundColor: 'rgba(255,255,255,0)', boxShadow: '0 0 0 rgba(0,0,0,0)', borderWidth: 1, duration: 250, easing: 'easeOutQuad' });
+            anime({ 
+                targets: cellBg, 
+                scale: 1, 
+                backgroundColor: 'rgba(255,255,255,0)', 
+                boxShadow: '0 0 0 rgba(0,0,0,0)', 
+                borderWidth: 1, 
+                backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
+                duration: 250, 
+                easing: 'easeOutQuad' 
+            });
             if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: 250, easing: 'easeOutQuad' });
             if (wireframe) anime({ targets: wireframe, opacity: 1, duration: 250, easing: 'easeOutQuad' });
             if (gradient) anime({ targets: gradient, opacity: 0, duration: 250, easing: 'easeOutQuad' });
