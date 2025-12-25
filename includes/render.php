@@ -45,7 +45,7 @@ if (!function_exists('icon_grid_sanitize_svg')) {
             ],
             'ellipse' => [
                 'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true,
-                'stroke' => true, 'stroke-width' => true, 'transform' => true, 'class' => true
+                'stroke' => true, 'stroke-width' => true, 'transform' => true, 'class' => true, 'style' => true
             ],
             'rect' => [
                 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true,
@@ -67,6 +67,18 @@ if (!function_exists('icon_grid_sanitize_svg')) {
             'g' => [
                 'fill' => true, 'stroke' => true, 'transform' => true, 'opacity' => true,
                 'class' => true, 'id' => true
+            ],
+            'defs' => [],
+            'lineargradient' => [
+                'id' => true, 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true,
+                'gradientunits' => true, 'gradienttransform' => true, 'spreadmethod' => true
+            ],
+            'radialgradient' => [
+                'id' => true, 'cx' => true, 'cy' => true, 'r' => true, 'fx' => true, 'fy' => true,
+                'gradientunits' => true, 'gradienttransform' => true, 'spreadmethod' => true
+            ],
+            'stop' => [
+                'offset' => true, 'stop-color' => true, 'stop-opacity' => true, 'style' => true
             ],
         ];
         return wp_kses($svg_content, $allowed_svg_tags);
@@ -306,15 +318,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                                             <?php echo icon_grid_sanitize_svg($svgPath); ?>
                                     </svg>
                                     <svg class="icon-grid-gradient" viewBox="0 0 64 64" aria-hidden="true">
-                                        <defs>
-                                            <linearGradient id="<?php echo esc_attr($gradientId); ?>" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                <stop offset="0%" style="stop-color:<?php echo esc_attr($gradient[0]); ?>"/>
-                                                <stop offset="100%" style="stop-color:<?php echo esc_attr($gradient[1]); ?>"/>
-                                            </linearGradient>
-                                        </defs>
-                                        <g fill="url(#<?php echo esc_attr($gradientId); ?>)" stroke="none">
-                                            <?php echo icon_grid_sanitize_svg($svgPath); ?>
-                                        </g>
+                                        <?php echo icon_grid_sanitize_svg($svgPath); ?>
                                     </svg>
                                 <?php endif; ?>
                             </div>

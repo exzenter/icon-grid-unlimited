@@ -134,6 +134,8 @@ A full Gutenberg block is included in the main plugin directory.
 - **Layout Settings**: Sticky toggle, vertical centering with target selector
 - **Popup Color Pickers**: Compact color selection for all color options
 - **Grid Editor Modal**: Visual 12x12 grid with drag-and-drop tile reordering
+- **Glassmorphism Effects**: Configurable blur and transparency for both active and inactive states
+- **SVG Gradient Support**: Preserves native SVG gradients/defs while supporting plugin overrides
 - **Block Tiles**: Embed Gutenberg blocks directly into tiles with hover animations
 
 ### Build
