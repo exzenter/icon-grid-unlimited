@@ -2,7 +2,7 @@
  * Icon Grid Block - Editor Component
  */
 import { __ } from '@wordpress/i18n';
-import { useBlockProps, InspectorControls, MediaUpload, MediaUploadCheck, InnerBlocks } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls, InnerBlocks } from '@wordpress/block-editor';
 import { serialize, parse } from '@wordpress/blocks';
 import {
     PanelBody,
@@ -550,6 +550,21 @@ export default function Edit({ attributes, setAttributes }) {
                         max={5}
                         step={0.25}
                     />
+                    <ToggleControl
+                        label={__('Enable Glassmorphism', 'icon-grid-unlimited')}
+                        checked={config.inactiveGlass}
+                        onChange={(v) => updateConfig('inactiveGlass', v)}
+                    />
+                    {config.inactiveGlass && (
+                        <RangeControl
+                            label={__('Glass Blur (px)', 'icon-grid-unlimited')}
+                            value={config.inactiveGlassBlur || 10}
+                            onChange={(v) => updateConfig('inactiveGlassBlur', v)}
+                            min={0}
+                            max={50}
+                            step={1}
+                        />
+                    )}
                 </PanelBody>
 
                 {/* Hover Settings */}
@@ -567,6 +582,21 @@ export default function Edit({ attributes, setAttributes }) {
                         color={config.hoverBgColor || '#ffffff'}
                         onChange={(color) => updateConfig('hoverBgColor', color)}
                     />
+                    <ToggleControl
+                        label={__('Enable Glassmorphism', 'icon-grid-unlimited')}
+                        checked={config.hoverGlass}
+                        onChange={(v) => updateConfig('hoverGlass', v)}
+                    />
+                    {config.hoverGlass && (
+                        <RangeControl
+                            label={__('Glass Blur (px)', 'icon-grid-unlimited')}
+                            value={config.hoverGlassBlur || 10}
+                            onChange={(v) => updateConfig('hoverGlassBlur', v)}
+                            min={0}
+                            max={50}
+                            step={1}
+                        />
+                    )}
                     <RangeControl
                         label={__('Hover Slide Amount (%)', 'icon-grid-unlimited')}
                         value={config.hoverSlideAmount || -10}
@@ -878,57 +908,15 @@ export default function Edit({ attributes, setAttributes }) {
                                             placeholder={__('e.g., Webdesign', 'icon-grid-unlimited')}
                                         />
 
-                                        <Flex gap={4} align="flex-start">
-                                            <FlexItem style={{ flex: 2 }}>
-                                                <TextareaControl
-                                                    label={__('SVG Path', 'icon-grid-unlimited')}
-                                                    value={iconSvgs[selectedTile]}
-                                                    onChange={(v) => updateSvg(selectedTile, v)}
-                                                    placeholder={__('Paste SVG path here (e.g., <polygon points="..."/>)', 'icon-grid-unlimited')}
-                                                    rows={4}
-                                                    style={{ fontFamily: 'monospace', fontSize: '11px' }}
-                                                    disabled={getTileBlockSettings(selectedTile).enabled}
-                                                />
-                                            </FlexItem>
-                                            <FlexItem style={{ flex: 1 }}>
-                                                <p style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>
-                                                    {__('Or select from Media', 'icon-grid-unlimited')}
-                                                </p>
-                                                <MediaUploadCheck>
-                                                    <MediaUpload
-                                                        onSelect={(media) => {
-                                                            // Fetch SVG content and extract inner elements
-                                                            if (media.url && media.url.endsWith('.svg')) {
-                                                                fetch(media.url)
-                                                                    .then(res => res.text())
-                                                                    .then(svg => {
-                                                                        // Extract content between <svg> tags
-                                                                        const match = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
-                                                                        if (match && match[1]) {
-                                                                            updateSvg(selectedTile, match[1].trim());
-                                                                        }
-                                                                    })
-                                                                    .catch(err => console.error('Failed to load SVG:', err));
-                                                            }
-                                                        }}
-                                                        allowedTypes={['image/svg+xml']}
-                                                        render={({ open }) => (
-                                                            <Button
-                                                                variant="secondary"
-                                                                onClick={open}
-                                                                disabled={getTileBlockSettings(selectedTile).enabled}
-                                                                style={{ width: '100%' }}
-                                                            >
-                                                                {__('Select SVG', 'icon-grid-unlimited')}
-                                                            </Button>
-                                                        )}
-                                                    />
-                                                </MediaUploadCheck>
-                                                <p style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
-                                                    {__('SVG must be uploaded to media library first', 'icon-grid-unlimited')}
-                                                </p>
-                                            </FlexItem>
-                                        </Flex>
+                                        <TextareaControl
+                                            label={__('SVG Path', 'icon-grid-unlimited')}
+                                            value={iconSvgs[selectedTile]}
+                                            onChange={(v) => updateSvg(selectedTile, v)}
+                                            placeholder={__('Paste SVG path here (e.g., <polygon points="..."/>)', 'icon-grid-unlimited')}
+                                            rows={4}
+                                            style={{ fontFamily: 'monospace', fontSize: '11px' }}
+                                            disabled={getTileBlockSettings(selectedTile).enabled}
+                                        />
 
                                         {/* Enable Block Section */}
                                         <div style={{ marginTop: '20px', padding: '12px', background: '#e8f4f8', borderRadius: '4px', border: '1px solid #b8dadd' }}>

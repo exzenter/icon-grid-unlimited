@@ -92,7 +92,11 @@
                 "iconOffsetX": 0,
                 "iconOffsetY": 0,
                 "transitionOffset": 0,
-                "startupDelay": 2000
+                "startupDelay": 2000,
+                "hoverGlass": false,
+                "hoverGlassBlur": 10,
+                "inactiveGlass": false,
+                "inactiveGlassBlur": 10
             }
         },
         "animationRounds": {

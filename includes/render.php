@@ -27,51 +27,48 @@ $default_gradients = [
     ['#fc5c65', '#fd9644'],
 ];
 
-// SVG sanitization - whitelist of allowed tags and attributes
-$allowed_svg_tags = [
-    'path' => [
-        'd' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
-        'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true,
-        'opacity' => true, 'fill-opacity' => true, 'stroke-opacity' => true,
-        'class' => true, 'id' => true
-    ],
-    'circle' => [
-        'cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true,
-        'stroke-width' => true, 'transform' => true, 'opacity' => true, 'class' => true
-    ],
-    'ellipse' => [
-        'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true,
-        'stroke' => true, 'stroke-width' => true, 'transform' => true, 'class' => true
-    ],
-    'rect' => [
-        'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true,
-        'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
-        'transform' => true, 'class' => true
-    ],
-    'polygon' => [
-        'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
-        'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true, 'class' => true
-    ],
-    'polyline' => [
-        'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
-        'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true, 'class' => true
-    ],
-    'line' => [
-        'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true,
-        'stroke-width' => true, 'stroke-linecap' => true, 'transform' => true, 'class' => true
-    ],
-    'g' => [
-        'fill' => true, 'stroke' => true, 'transform' => true, 'opacity' => true,
-        'class' => true, 'id' => true
-    ],
-];
-
 /**
  * Sanitize SVG content using wp_kses whitelist
  */
 if (!function_exists('icon_grid_sanitize_svg')) {
     function icon_grid_sanitize_svg($svg_content) {
-        global $allowed_svg_tags;
+        $allowed_svg_tags = [
+            'path' => [
+                'd' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+                'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true,
+                'opacity' => true, 'fill-opacity' => true, 'stroke-opacity' => true,
+                'class' => true, 'id' => true, 'fill-rule' => true, 'clip-rule' => true
+            ],
+            'circle' => [
+                'cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true,
+                'stroke-width' => true, 'transform' => true, 'opacity' => true, 'class' => true
+            ],
+            'ellipse' => [
+                'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true,
+                'stroke' => true, 'stroke-width' => true, 'transform' => true, 'class' => true
+            ],
+            'rect' => [
+                'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true,
+                'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+                'transform' => true, 'class' => true
+            ],
+            'polygon' => [
+                'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+                'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true, 'class' => true
+            ],
+            'polyline' => [
+                'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true,
+                'stroke-linecap' => true, 'stroke-linejoin' => true, 'transform' => true, 'class' => true
+            ],
+            'line' => [
+                'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true,
+                'stroke-width' => true, 'stroke-linecap' => true, 'transform' => true, 'class' => true
+            ],
+            'g' => [
+                'fill' => true, 'stroke' => true, 'transform' => true, 'opacity' => true,
+                'class' => true, 'id' => true
+            ],
+        ];
         return wp_kses($svg_content, $allowed_svg_tags);
     }
 }
@@ -788,7 +785,7 @@ if (!empty($structuredData['itemListElement'])):
         anime({
             targets: cellBg,
             scale: 1,
-            backgroundColor: 'rgba(255,255,255,0)',
+            backgroundColor: CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)',
             boxShadow: '0 0 0 rgba(0,0,0,0)',
             borderWidth: 1,
             backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
@@ -910,6 +907,12 @@ if (!empty($structuredData['itemListElement'])):
             });
         });
         
+        // Initialize glassmorphism by calling unhighlightCell on all cells after entrance animation
+        // This mimics what happens after a round animation ends, which properly applies backdrop-filter
+        setTimeout(() => {
+            cells.forEach(unhighlightCell);
+        }, 1900); // After max stagger delay (1500) + animation duration (350) + buffer
+        
         setTimeout(() => {
             playNextRound();
             // Apply transition offset: negative = overlap (next starts early), positive = delay
@@ -958,7 +961,7 @@ if (!empty($structuredData['itemListElement'])):
             anime({ 
                 targets: cellBg, 
                 scale: 1, 
-                backgroundColor: 'rgba(255,255,255,0)', 
+                backgroundColor: CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)', 
                 boxShadow: '0 0 0 rgba(0,0,0,0)', 
                 borderWidth: 1, 
                 backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
