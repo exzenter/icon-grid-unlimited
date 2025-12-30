@@ -153,6 +153,16 @@
     mix-blend-mode: multiply;
 }
 
+.icon-grid-gradient path,
+.icon-grid-gradient circle,
+.icon-grid-gradient rect,
+.icon-grid-gradient polygon,
+.icon-grid-gradient polyline,
+.icon-grid-gradient line,
+.icon-grid-gradient ellipse {
+    mix-blend-mode: multiply;
+}
+
 .icon-grid-line-overlay {
     position: absolute;
     top: 0;
