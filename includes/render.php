@@ -267,6 +267,10 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $storageIndex = $maxRow * 12 + $maxCol;
                     $label = $attributes['iconLabels'][$storageIndex] ?? '';
                     
+                    // Full grid position (1-based) - used for animation rounds lookup
+                    // This matches what the animation rounds editor shows
+                    $fullGridPosition = $maxRow * $gridCols + $maxCol + 1;
+                    
                     // Check if this tile is in the subgrid
                     $isInSubgrid = !$enlargeEnabled || (
                         $maxRow >= $subgridStartRow && $maxRow < $subgridStartRow + $subgridRows &&
@@ -278,7 +282,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $subgridPosition++;
                         $position = $subgridPosition;
             ?>
-                <div class="icon-grid-cell-wrapper<?php echo empty($label) ? ' empty-cell' : ''; ?>" data-position="<?php echo $position; ?>" data-storage-index="<?php echo $storageIndex; ?>">
+                <div class="icon-grid-cell-wrapper<?php echo empty($label) ? ' empty-cell' : ''; ?>" data-position="<?php echo $position; ?>" data-full-grid-position="<?php echo $fullGridPosition; ?>" data-storage-index="<?php echo $storageIndex; ?>">
                     <?php if (!empty($label)): 
                         $seoInfo = $attributes['seoData'][$label] ?? ['url' => '#', 'description' => $label];
                         $svgPath = $attributes['iconSvgs'][$storageIndex] ?? '';
@@ -340,6 +344,8 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                             'label' => $label,
                             'maxRow' => $maxRow,
                             'maxCol' => $maxCol,
+                            // Full grid position for animation rounds lookup
+                            'fullGridPosition' => $fullGridPosition,
                             // Calculate position relative to subgrid for absolute positioning
                             'offsetRow' => $maxRow - $subgridStartRow,
                             'offsetCol' => $maxCol - $subgridStartCol
@@ -355,6 +361,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $expansionPosition++;
                     $storageIndex = $tileData['storageIndex'];
                     $label = $tileData['label'];
+                    $fullGridPosition = $tileData['fullGridPosition'];
                     $offsetRow = $tileData['offsetRow'];
                     $offsetCol = $tileData['offsetCol'];
                     
@@ -365,7 +372,8 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $staggerDelay = round($distance * 50);
             ?>
                 <div class="icon-grid-cell-wrapper expansion-tile<?php echo empty($label) ? ' empty-cell' : ''; ?>" 
-                     data-position="<?php echo $expansionPosition; ?>" 
+                     data-position="<?php echo $expansionPosition; ?>"
+                     data-full-grid-position="<?php echo $fullGridPosition; ?>"
                      data-storage-index="<?php echo $storageIndex; ?>"
                      data-expand-delay="<?php echo $staggerDelay; ?>"
                      style="--offset-row: <?php echo $offsetRow; ?>; --offset-col: <?php echo $offsetCol; ?>; --subgrid-rows: <?php echo $subgridRows; ?>; --subgrid-cols: <?php echo $subgridCols; ?>; top: calc(var(--offset-row) * ((100% + var(--grid-gap)) / var(--subgrid-rows))); left: calc(var(--offset-col) * ((100% + var(--grid-gap)) / var(--subgrid-cols))); width: calc((100% + var(--grid-gap)) / var(--subgrid-cols) - var(--grid-gap)); height: calc((100% + var(--grid-gap)) / var(--subgrid-rows) - var(--grid-gap));">
@@ -526,21 +534,29 @@ if (!empty($structuredData['itemListElement'])):
     });
     
     // Helper functions
+    // getCellAtPosition uses data-full-grid-position for animation rounds lookup
+    // This ensures positions match what the editor shows, regardless of DOM order
     function getCellAtPosition(pos) {
         // Validate position is within current grid bounds
         if (pos < 1 || pos > totalTiles) return null;
-        const wrapper = allCellWrappers[pos - 1];
+        // Use full-grid-position attribute for lookup (matches animation rounds editor)
+        const wrapper = container.querySelector(`.icon-grid-cell-wrapper[data-full-grid-position="${pos}"]`);
         return wrapper ? wrapper.querySelector('.icon-grid-cell') : null;
     }
     
-    // Check if a position (1-based) is within the visible subgrid
+    // Check if a position (1-based full-grid position) is within the visible subgrid
     function isPositionInSubgrid(pos) {
         if (!enlargeEnabled || isEnlarged) return true; // All positions valid if enlarged or feature disabled
         
-        // For subgrid tiles, positions go sequentially 1 to subgridRows*subgridCols
-        // Expansion tiles have positions after that
-        const subgridTileCount = subgridRows * subgridCols;
-        return pos <= subgridTileCount;
+        // Convert full-grid position to row/col
+        const posZero = pos - 1;
+        const row = Math.floor(posZero / gridCols);
+        const col = posZero % gridCols;
+        
+        // Check if this row/col falls within the subgrid region
+        const rowInRange = row >= subgridStartRow ? row < subgridStartRow + subgridRows : false;
+        const colInRange = col >= subgridStartCol ? col < subgridStartCol + subgridCols : false;
+        return rowInRange ? colInRange : false;
     }
     
     // Enlarge grid function - animate expansion tiles with same stagger as entrance
@@ -986,11 +1002,16 @@ if (!empty($structuredData['itemListElement'])):
         if (hasAnimated) return;
         hasAnimated = true;
         
-        if (typeof anime !== 'undefined') {
-            playEntranceAnimation();
-        } else {
-            window.addEventListener('load', playEntranceAnimation);
+        // Wait for anime.js to be available (it's loaded in footer)
+        function waitForAnime() {
+            if (typeof anime !== 'undefined') {
+                playEntranceAnimation();
+            } else {
+                // Poll every 50ms for anime.js to load
+                setTimeout(waitForAnime, 50);
+            }
         }
+        waitForAnime();
     }
     
     function pauseAnimation() {
