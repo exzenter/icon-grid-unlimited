@@ -513,7 +513,7 @@ if (!empty($structuredData['itemListElement'])):
     
     // State
     let highlightInterval = null;
-    let currentlyHighlighted = [];
+    let currentlyHighlighted = new Set();
     let currentRoundIndex = 0;
     let isEnlarged = !enlargeEnabled; // Start enlarged if feature is disabled
     
@@ -821,7 +821,7 @@ if (!empty($structuredData['itemListElement'])):
         if (ANIMATION_ROUNDS.length === 0) return;
         
         currentlyHighlighted.forEach(unhighlightCell);
-        currentlyHighlighted = [];
+        currentlyHighlighted = new Set();
         lineOverlay.innerHTML = '';
         
         const round = ANIMATION_ROUNDS[currentRoundIndex];
@@ -887,14 +887,18 @@ if (!empty($structuredData['itemListElement'])):
             allConnections.push(...connections);
             
             setTimeout(() => {
-                highlightCell(sourceCell);
-                currentlyHighlighted.push(sourceCell);
+                if (!currentlyHighlighted.has(sourceCell)) {
+                    highlightCell(sourceCell);
+                    currentlyHighlighted.add(sourceCell);
+                }
                 connections.forEach(animateLineIn);
                 
                 setTimeout(() => {
                     targetCells.forEach(cell => {
-                        highlightCell(cell);
-                        currentlyHighlighted.push(cell);
+                        if (!currentlyHighlighted.has(cell)) {
+                            highlightCell(cell);
+                            currentlyHighlighted.add(cell);
+                        }
                     });
                 }, CONFIG.lineDrawDuration * 1000);
             }, staggerDelay);
@@ -906,7 +910,7 @@ if (!empty($structuredData['itemListElement'])):
             
             setTimeout(() => {
                 allTargetCells.forEach(unhighlightCell);
-                currentlyHighlighted = [];
+                currentlyHighlighted = new Set();
                 allConnections.forEach(c => c.pathElement.remove());
             }, CONFIG.lineDrawDuration * 1000);
         }, CONFIG.highlightDuration);
@@ -951,7 +955,7 @@ if (!empty($structuredData['itemListElement'])):
         
         cell.addEventListener('mouseenter', () => {
             // Skip if already highlighted by animation - prevents double box-shadow
-            if (currentlyHighlighted.includes(cell)) return;
+            if (currentlyHighlighted.has(cell)) return;
             
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
@@ -973,7 +977,7 @@ if (!empty($structuredData['itemListElement'])):
         });
         
         cell.addEventListener('mouseleave', () => {
-            if (currentlyHighlighted.includes(cell)) return;
+            if (currentlyHighlighted.has(cell)) return;
             
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
