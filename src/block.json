@@ -96,7 +96,16 @@
                 "hoverGlass": false,
                 "hoverGlassBlur": 10,
                 "inactiveGlass": false,
-                "inactiveGlassBlur": 10
+                "inactiveGlassBlur": 10,
+                "gridGapMin": 6,
+                "gridGapMax": 15,
+                "tileBorderRadius": 5,
+                "inactiveBgColor": "rgba(255,255,255,0)",
+                "activeShadowX": 0,
+                "activeShadowY": 8,
+                "activeShadowBlur": 10,
+                "activeShadowSpread": 0,
+                "activeShadowColor": "rgba(0,0,0,0.10)"
             }
         },
         "animationRounds": {

@@ -401,6 +401,32 @@ export default function Edit({ attributes, setAttributes }) {
 
                     <hr style={{ margin: '20px 0', borderColor: '#ddd' }} />
 
+                    <p style={{ fontWeight: '500', fontSize: '12px', color: '#1e1e1e', marginBottom: '10px' }}>
+                        {__('Grid Gap (uses clamp)', 'icon-grid-unlimited')}
+                    </p>
+                    <Flex gap={4}>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Min (px)', 'icon-grid-unlimited')}
+                                value={config.gridGapMin || 6}
+                                onChange={(v) => updateConfig('gridGapMin', v)}
+                                min={0}
+                                max={50}
+                                step={1}
+                            />
+                        </FlexItem>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Max (px)', 'icon-grid-unlimited')}
+                                value={config.gridGapMax || 15}
+                                onChange={(v) => updateConfig('gridGapMax', v)}
+                                min={0}
+                                max={100}
+                                step={1}
+                            />
+                        </FlexItem>
+                    </Flex>
+
                     <ToggleControl
                         label={__('Enlarge Grid After Event', 'icon-grid-unlimited')}
                         checked={enlargeEnabled}
@@ -647,6 +673,19 @@ export default function Edit({ attributes, setAttributes }) {
                         max={50}
                         step={1}
                     />
+                    <RangeControl
+                        label={__('Tile Border Radius (px)', 'icon-grid-unlimited')}
+                        value={config.tileBorderRadius ?? 5}
+                        onChange={(v) => updateConfig('tileBorderRadius', v)}
+                        min={0}
+                        max={50}
+                        step={1}
+                    />
+                    <PopupColorPicker
+                        label={__('Inactive Background Color', 'icon-grid-unlimited')}
+                        color={config.inactiveBgColor || 'rgba(255,255,255,0)'}
+                        onChange={(color) => updateConfig('inactiveBgColor', color)}
+                    />
                     <PopupColorPicker
                         label={__('Inactive Border Color', 'icon-grid-unlimited')}
                         color={config.inactiveBorderColor || '#00000031'}
@@ -719,6 +758,61 @@ export default function Edit({ attributes, setAttributes }) {
                         min={-50}
                         max={50}
                         step={1}
+                    />
+
+                    <hr style={{ margin: '20px 0', borderColor: '#ddd' }} />
+
+                    <p style={{ fontWeight: '500', fontSize: '12px', color: '#1e1e1e', marginBottom: '10px' }}>
+                        {__('Active Tile Shadow', 'icon-grid-unlimited')}
+                    </p>
+                    <Flex gap={4}>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('X Offset', 'icon-grid-unlimited')}
+                                value={config.activeShadowX ?? 0}
+                                onChange={(v) => updateConfig('activeShadowX', v)}
+                                min={-20}
+                                max={20}
+                                step={1}
+                            />
+                        </FlexItem>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Y Offset', 'icon-grid-unlimited')}
+                                value={config.activeShadowY ?? 8}
+                                onChange={(v) => updateConfig('activeShadowY', v)}
+                                min={-20}
+                                max={20}
+                                step={1}
+                            />
+                        </FlexItem>
+                    </Flex>
+                    <Flex gap={4}>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Blur', 'icon-grid-unlimited')}
+                                value={config.activeShadowBlur ?? 10}
+                                onChange={(v) => updateConfig('activeShadowBlur', v)}
+                                min={0}
+                                max={50}
+                                step={1}
+                            />
+                        </FlexItem>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Spread', 'icon-grid-unlimited')}
+                                value={config.activeShadowSpread ?? 0}
+                                onChange={(v) => updateConfig('activeShadowSpread', v)}
+                                min={-20}
+                                max={20}
+                                step={1}
+                            />
+                        </FlexItem>
+                    </Flex>
+                    <PopupColorPicker
+                        label={__('Shadow Color', 'icon-grid-unlimited')}
+                        color={config.activeShadowColor || 'rgba(0,0,0,0.10)'}
+                        onChange={(color) => updateConfig('activeShadowColor', color)}
                     />
                 </PanelBody>
 

@@ -115,6 +115,15 @@ $iconOffsetX = $attributes['config']['iconOffsetX'] ?? 0;
 $iconOffsetY = $attributes['config']['iconOffsetY'] ?? 0;
 $inactiveGlass = $attributes['config']['inactiveGlass'] ?? false;
 $inactiveGlassBlur = $attributes['config']['inactiveGlassBlur'] ?? 10;
+$gridGapMin = $attributes['config']['gridGapMin'] ?? 6;
+$gridGapMax = $attributes['config']['gridGapMax'] ?? 15;
+$tileBorderRadius = $attributes['config']['tileBorderRadius'] ?? 5;
+$inactiveBgColor = $attributes['config']['inactiveBgColor'] ?? 'rgba(255,255,255,0)';
+$activeShadowX = $attributes['config']['activeShadowX'] ?? 0;
+$activeShadowY = $attributes['config']['activeShadowY'] ?? 8;
+$activeShadowBlur = $attributes['config']['activeShadowBlur'] ?? 10;
+$activeShadowSpread = $attributes['config']['activeShadowSpread'] ?? 0;
+$activeShadowColor = $attributes['config']['activeShadowColor'] ?? 'rgba(0,0,0,0.10)';
 $perTileIconSettings = $attributes['perTileIconSettings'] ?? [];
 $tileBlockSettings = $attributes['tileBlockSettings'] ?? [];
 $tileBlocks = $attributes['tileBlocks'] ?? [];
@@ -133,15 +142,16 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
 <div id="<?php echo esc_attr($block_id); ?>" class="wp-block-icon-grid-unlimited-icon-grid<?php echo $stickyClass . $centerClass . $enlargeClass; ?>" <?php if ($stickyStyle): ?>style="<?php echo $stickyStyle; ?>"<?php endif; ?> data-center-vertically="<?php echo $centerVertically ? 'true' : 'false'; ?>" data-center-target="<?php echo esc_attr($centerTargetSelector); ?>" data-grid-rows="<?php echo esc_attr($gridRows); ?>" data-grid-cols="<?php echo esc_attr($gridCols); ?>" data-enlarge-enabled="<?php echo $enlargeEnabled ? 'true' : 'false'; ?>" data-subgrid-rows="<?php echo esc_attr($subgridRows); ?>" data-subgrid-cols="<?php echo esc_attr($subgridCols); ?>" data-subgrid-start-row="<?php echo esc_attr($subgridStartRow); ?>" data-subgrid-start-col="<?php echo esc_attr($subgridStartCol); ?>" data-trigger-button="<?php echo esc_attr($enlargeTriggerButton); ?>" data-trigger-event="<?php echo esc_attr($enlargeTriggerEvent); ?>" data-trigger-scroll="<?php echo esc_attr($enlargeTriggerScroll); ?>">
     <style>
         #<?php echo esc_attr($block_id); ?> .icon-grid-container {
-            --grid-gap: clamp(6px, 2vw, 15px);
+            --grid-gap: clamp(<?php echo esc_attr($gridGapMin); ?>px, 2vw, <?php echo esc_attr($gridGapMax); ?>px);
             grid-template-columns: repeat(<?php echo esc_attr($visibleCols); ?>, 1fr);
             position: relative;
             <?php if ($enlargeEnabled): ?>overflow: visible;<?php endif; ?>
         }
         #<?php echo esc_attr($block_id); ?> .icon-grid-cell-bg {
             border-color: <?php echo esc_attr($inactiveBorderColor); ?>;
+            border-radius: <?php echo esc_attr($tileBorderRadius); ?>px;
+            background: <?php echo esc_attr($inactiveBgColor); ?>;
             <?php if ($inactiveGlass): ?>
-            background: rgba(255,255,255,0.1);
             backdrop-filter: blur(<?php echo esc_attr($inactiveGlassBlur); ?>px);
             -webkit-backdrop-filter: blur(<?php echo esc_attr($inactiveGlassBlur); ?>px);
             <?php endif; ?>
@@ -775,7 +785,7 @@ if (!empty($structuredData['itemListElement'])):
             targets: cellBg,
             scale: CONFIG.hoverScale || 1.08,
             backgroundColor: CONFIG.hoverBgColor || '#fff',
-            boxShadow: '0 8px 10px rgba(0,0,0,0.10)',
+            boxShadow: `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`,
             borderWidth: 0,
             backdropFilter: CONFIG.hoverGlass ? `blur(${CONFIG.hoverGlassBlur || 10}px)` : (CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)'),
             duration: CONFIG.cellAnimDuration * 1000,
@@ -805,8 +815,8 @@ if (!empty($structuredData['itemListElement'])):
         anime({
             targets: cellBg,
             scale: 1,
-            backgroundColor: CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)',
-            boxShadow: '0 0 0 rgba(0,0,0,0)',
+            backgroundColor: CONFIG.inactiveBgColor || (CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)'),
+            boxShadow: '0 0 0 0 rgba(0,0,0,0)',
             borderWidth: 1,
             backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
             duration: CONFIG.cellAnimDuration * 1000,
@@ -964,7 +974,7 @@ if (!empty($structuredData['itemListElement'])):
                 targets: cellBg, 
                 scale: CONFIG.hoverScale || 1.08, 
                 backgroundColor: CONFIG.hoverBgColor || '#fff', 
-                boxShadow: '0 8px 10px rgba(0,0,0,0.10)', 
+                boxShadow: `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`, 
                 borderWidth: 0, 
                 backdropFilter: CONFIG.hoverGlass ? `blur(${CONFIG.hoverGlassBlur || 10}px)` : (CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)'),
                 duration: 300, 
@@ -985,8 +995,8 @@ if (!empty($structuredData['itemListElement'])):
             anime({ 
                 targets: cellBg, 
                 scale: 1, 
-                backgroundColor: CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)', 
-                boxShadow: '0 0 0 rgba(0,0,0,0)', 
+                backgroundColor: CONFIG.inactiveBgColor || (CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)'), 
+                boxShadow: '0 0 0 0 rgba(0,0,0,0)', 
                 borderWidth: 1, 
                 backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
                 duration: 250, 
