@@ -1536,6 +1536,40 @@ export default function Edit({ attributes, setAttributes }) {
                                                     />
                                                 </>
                                             )}
+
+                                            {/* Logo Explode Transitions */}
+                                            <div style={{ marginTop: '20px', padding: '12px', background: '#f0f8ff', borderRadius: '4px', border: '1px solid #b0d4f1' }}>
+                                                <ToggleControl
+                                                    label={__('Act as Transition Source', 'icon-grid-unlimited')}
+                                                    checked={perTileIconSettings[selectedTile]?.isTransitionSource || false}
+                                                    onChange={(v) => updatePerTileSettings(selectedTile, 'isTransitionSource', v)}
+                                                    help={__('Enable this tile as a source for WP Logo Explode transitions', 'icon-grid-unlimited')}
+                                                />
+                                                {perTileIconSettings[selectedTile]?.isTransitionSource && (
+                                                    <>
+                                                        <TextControl
+                                                            label={__('Transition ID', 'icon-grid-unlimited')}
+                                                            value={perTileIconSettings[selectedTile]?.transitionId || ''}
+                                                            onChange={(v) => updatePerTileSettings(selectedTile, 'transitionId', v)}
+                                                            placeholder="unique-transition-id"
+                                                            help={__('Unique identifier for this transition source', 'icon-grid-unlimited')}
+                                                        />
+                                                        <RangeControl
+                                                            label={__('Explosion Scale (%)', 'icon-grid-unlimited')}
+                                                            value={perTileIconSettings[selectedTile]?.transitionScaleExplode || 100}
+                                                            onChange={(v) => updatePerTileSettings(selectedTile, 'transitionScaleExplode', v)}
+                                                            min={50}
+                                                            max={200}
+                                                            step={5}
+                                                        />
+                                                        <PopupColorPicker
+                                                            label={__('Explode Background Override', 'icon-grid-unlimited')}
+                                                            color={perTileIconSettings[selectedTile]?.transitionColorOverride || ''}
+                                                            onChange={(color) => updatePerTileSettings(selectedTile, 'transitionColorOverride', color)}
+                                                        />
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 })() : (

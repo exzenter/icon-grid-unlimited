@@ -291,8 +291,28 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         // Render subgrid tile normally in grid flow
                         $subgridPosition++;
                         $position = $subgridPosition;
+                        
+                        // Get per-tile transition settings
+                        $tileSettings = $perTileIconSettings[$storageIndex] ?? [];
+                        $isTransitionSource = !empty($tileSettings['isTransitionSource']);
+                        $transitionId = $tileSettings['transitionId'] ?? '';
+                        $transitionScaleExplode = $tileSettings['transitionScaleExplode'] ?? 100;
+                        $transitionColorOverride = $tileSettings['transitionColorOverride'] ?? '';
+                        $seoUrl = ($attributes['seoData'][$label]['url'] ?? '#');
+                        
+                        // Build transition data attributes
+                        $transitionAttrs = '';
+                        if ($isTransitionSource && !empty($label)) {
+                            $transitionAttrs = ' data-transition-role="source"';
+                            $transitionAttrs .= ' data-transition-id="' . esc_attr($transitionId) . '"';
+                            $transitionAttrs .= ' data-transition-link="' . esc_url($seoUrl) . '"';
+                            $transitionAttrs .= ' data-transition-scale-explode="' . esc_attr($transitionScaleExplode) . '"';
+                            if (!empty($transitionColorOverride)) {
+                                $transitionAttrs .= ' data-transition-color="' . esc_attr($transitionColorOverride) . '"';
+                            }
+                        }
             ?>
-                <div class="icon-grid-cell-wrapper<?php echo empty($label) ? ' empty-cell' : ''; ?>" data-position="<?php echo $position; ?>" data-full-grid-position="<?php echo $fullGridPosition; ?>" data-storage-index="<?php echo $storageIndex; ?>">
+                <div class="icon-grid-cell-wrapper<?php echo empty($label) ? ' empty-cell' : ''; ?>" data-position="<?php echo $position; ?>" data-full-grid-position="<?php echo $fullGridPosition; ?>" data-storage-index="<?php echo $storageIndex; ?>"<?php echo $transitionAttrs; ?>>
                     <?php if (!empty($label)): 
                         $seoInfo = $attributes['seoData'][$label] ?? ['url' => '#', 'description' => $label];
                         $svgPath = $attributes['iconSvgs'][$storageIndex] ?? '';
@@ -380,12 +400,32 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $centerCol = $subgridCols / 2;
                     $distance = sqrt(pow($offsetRow - $centerRow + 0.5, 2) + pow($offsetCol - $centerCol + 0.5, 2));
                     $staggerDelay = round($distance * 50);
+                    
+                    // Get per-tile transition settings
+                    $tileSettings = $perTileIconSettings[$storageIndex] ?? [];
+                    $isTransitionSource = !empty($tileSettings['isTransitionSource']);
+                    $transitionId = $tileSettings['transitionId'] ?? '';
+                    $transitionScaleExplode = $tileSettings['transitionScaleExplode'] ?? 100;
+                    $transitionColorOverride = $tileSettings['transitionColorOverride'] ?? '';
+                    $seoUrl = ($attributes['seoData'][$label]['url'] ?? '#');
+                    
+                    // Build transition data attributes
+                    $transitionAttrs = '';
+                    if ($isTransitionSource && !empty($label)) {
+                        $transitionAttrs = ' data-transition-role="source"';
+                        $transitionAttrs .= ' data-transition-id="' . esc_attr($transitionId) . '"';
+                        $transitionAttrs .= ' data-transition-link="' . esc_url($seoUrl) . '"';
+                        $transitionAttrs .= ' data-transition-scale-explode="' . esc_attr($transitionScaleExplode) . '"';
+                        if (!empty($transitionColorOverride)) {
+                            $transitionAttrs .= ' data-transition-color="' . esc_attr($transitionColorOverride) . '"';
+                        }
+                    }
             ?>
                 <div class="icon-grid-cell-wrapper expansion-tile<?php echo empty($label) ? ' empty-cell' : ''; ?>" 
                      data-position="<?php echo $expansionPosition; ?>"
                      data-full-grid-position="<?php echo $fullGridPosition; ?>"
                      data-storage-index="<?php echo $storageIndex; ?>"
-                     data-expand-delay="<?php echo $staggerDelay; ?>"
+                     data-expand-delay="<?php echo $staggerDelay; ?>"<?php echo $transitionAttrs; ?>
                      style="--offset-row: <?php echo $offsetRow; ?>; --offset-col: <?php echo $offsetCol; ?>; --subgrid-rows: <?php echo $subgridRows; ?>; --subgrid-cols: <?php echo $subgridCols; ?>; top: calc(var(--offset-row) * ((100% + var(--grid-gap)) / var(--subgrid-rows))); left: calc(var(--offset-col) * ((100% + var(--grid-gap)) / var(--subgrid-cols))); width: calc((100% + var(--grid-gap)) / var(--subgrid-cols) - var(--grid-gap)); height: calc((100% + var(--grid-gap)) / var(--subgrid-rows) - var(--grid-gap));">
                     <?php if (!empty($label)): 
                         $seoInfo = $attributes['seoData'][$label] ?? ['url' => '#', 'description' => $label];
