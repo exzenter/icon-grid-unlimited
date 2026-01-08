@@ -854,38 +854,39 @@ if (!empty($structuredData['itemListElement'])):
             }
             
             const sourceCell = getCellAtPosition(positions[0]);
-            const targetCells = [getCellAtPosition(positions[1])];
-            if (positions.length > 2) {
-                targetCells.push(getCellAtPosition(positions[2]));
-            }
+            // Collect ALL target cells (positions[1] through positions[n])
+            const targetCells = positions.slice(1).map(pos => getCellAtPosition(pos));
             
-            if (!sourceCell || targetCells.some(c => !c)) return;
+            if (!sourceCell || targetCells.length === 0 || targetCells.some(c => !c)) return;
             
-            let applyOffsets = [false, false];
+            // Initialize applyOffsets array for all targets
+            let applyOffsets = targetCells.map(() => false);
+            
+            // Apply offset logic for line separation when multiple targets exist
             if (targetCells.length > 1) {
                 const sourceGeom = getCellGeometry(sourceCell);
-                const target1Geom = getCellGeometry(targetCells[0]);
-                const target2Geom = getCellGeometry(targetCells[1]);
+                const targetGeoms = targetCells.map(cell => getCellGeometry(cell));
                 
-                const dy1 = target1Geom.cy - sourceGeom.cy;
-                const dy2 = target2Geom.cy - sourceGeom.cy;
-                const dx1 = target1Geom.cx - sourceGeom.cx;
-                const dx2 = target2Geom.cx - sourceGeom.cx;
+                // Calculate deltas for all targets
+                const deltas = targetGeoms.map(geom => ({
+                    dx: geom.cx - sourceGeom.cx,
+                    dy: geom.cy - sourceGeom.cy
+                }));
                 
-                const bothPositiveY = dy1 > 0 ? dy2 > 0 : false;
-                const bothNegativeY = dy1 < 0 ? dy2 < 0 : false;
-                const sameVerticalDirection = bothPositiveY ? true : bothNegativeY;
+                // Group targets by vertical direction
+                const positiveYTargets = deltas.map((d, i) => d.dy > 0 ? i : -1).filter(i => i >= 0);
+                const negativeYTargets = deltas.map((d, i) => d.dy < 0 ? i : -1).filter(i => i >= 0);
                 
-                if (sameVerticalDirection) {
-                    const bothPositiveX = dx1 > 0 ? dx2 > 0 : false;
-                    const bothNegativeX = dx1 < 0 ? dx2 < 0 : false;
-                    const sameTurnDirection = bothPositiveX ? true : bothNegativeX;
-                    if (sameTurnDirection) {
-                        applyOffsets = Math.abs(dy1) < Math.abs(dy2) ? [true, false] : [false, true];
-                    } else {
-                        applyOffsets = [true, true];
+                // Apply offsets to targets going in the same vertical direction
+                [positiveYTargets, negativeYTargets].forEach(group => {
+                    if (group.length > 1) {
+                        // Sort by distance and apply alternating offsets
+                        const sorted = group.slice().sort((a, b) => Math.abs(deltas[a].dy) - Math.abs(deltas[b].dy));
+                        sorted.forEach((idx, i) => {
+                            applyOffsets[idx] = i % 2 === 0; // Alternate offsets
+                        });
                     }
-                }
+                });
             }
             
             const connections = targetCells.map((target, i) =>
