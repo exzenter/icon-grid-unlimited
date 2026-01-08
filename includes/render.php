@@ -643,22 +643,30 @@ if (!empty($structuredData['itemListElement'])):
         };
     }
     
-    function getOrthoExitPoint(geom, dx, dy, applyOffset = false) {
+    function getOrthoExitPoint(geom, dx, dy, spreadInfo = null) {
         const { cx, cy, rect } = geom;
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
         
+        // Calculate spread offset for multiple lines in same direction
+        // spreadInfo: { index: 0-based position, total: count in this direction }
+        let spreadOffset = 0;
+        if (spreadInfo && spreadInfo.total > 1) {
+            const spreadWidth = Math.min(rect.width * 0.6, spreadInfo.total * CONFIG.turnOffset * 2);
+            const step = spreadWidth / (spreadInfo.total - 1);
+            spreadOffset = -spreadWidth / 2 + step * spreadInfo.index;
+        }
+        
         if (absDy < CONFIG.straightThreshold) {
-            // Horizontal path
-            return { x: dx > 0 ? rect.right : rect.left, y: cy };
+            // Horizontal path - spread along Y axis
+            return { x: dx > 0 ? rect.right : rect.left, y: cy + spreadOffset };
         }
         if (absDx < CONFIG.straightThreshold) {
-            // Vertical path
-            return { x: cx, y: dy > 0 ? rect.bottom : rect.top };
+            // Vertical path - spread along X axis
+            return { x: cx + spreadOffset, y: dy > 0 ? rect.bottom : rect.top };
         }
-        // L-shaped path
-        const offset = applyOffset ? (dx > 0 ? CONFIG.turnOffset : -CONFIG.turnOffset) : 0;
-        return { x: cx + offset, y: dy > 0 ? rect.bottom : rect.top };
+        // L-shaped path - spread along X axis (exit from top/bottom)
+        return { x: cx + spreadOffset, y: dy > 0 ? rect.bottom : rect.top };
     }
     
     function getOrthoEntryPoint(geom, dx, dy) {
@@ -709,13 +717,13 @@ if (!empty($structuredData['itemListElement'])):
         return `M ${start.x} ${start.y} L ${start.x} ${targetCy - yDir * r} Q ${start.x} ${targetCy} ${start.x + xDir * r} ${targetCy} L ${end.x} ${end.y}`;
     }
     
-    function createConnectionLine(fromCell, toCell, applyOffset = false, useOrtho = orthoLinesEnabled) {
+    function createConnectionLine(fromCell, toCell, spreadInfo = null, useOrtho = orthoLinesEnabled) {
         const fromGeom = getCellGeometry(fromCell);
         const toGeom = getCellGeometry(toCell);
         const dx = toGeom.cx - fromGeom.cx;
         const dy = toGeom.cy - fromGeom.cy;
         
-        const start = useOrtho ? getOrthoExitPoint(fromGeom, dx, dy, applyOffset) : getDiagonalExitPoint(fromGeom, dx, dy);
+        const start = useOrtho ? getOrthoExitPoint(fromGeom, dx, dy, spreadInfo) : getDiagonalExitPoint(fromGeom, dx, dy);
         const end = useOrtho ? getOrthoEntryPoint(toGeom, dx, dy) : getDiagonalEntryPoint(toGeom, dx, dy);
         
         const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -859,38 +867,45 @@ if (!empty($structuredData['itemListElement'])):
             
             if (!sourceCell || targetCells.length === 0 || targetCells.some(c => !c)) return;
             
-            // Initialize applyOffsets array for all targets
-            let applyOffsets = targetCells.map(() => false);
+            // Calculate spread info for each target based on directional grouping
+            const sourceGeom = getCellGeometry(sourceCell);
+            const targetGeoms = targetCells.map(cell => getCellGeometry(cell));
             
-            // Apply offset logic for line separation when multiple targets exist
-            if (targetCells.length > 1) {
-                const sourceGeom = getCellGeometry(sourceCell);
-                const targetGeoms = targetCells.map(cell => getCellGeometry(cell));
-                
-                // Calculate deltas for all targets
-                const deltas = targetGeoms.map(geom => ({
-                    dx: geom.cx - sourceGeom.cx,
-                    dy: geom.cy - sourceGeom.cy
-                }));
-                
-                // Group targets by vertical direction
-                const positiveYTargets = deltas.map((d, i) => d.dy > 0 ? i : -1).filter(i => i >= 0);
-                const negativeYTargets = deltas.map((d, i) => d.dy < 0 ? i : -1).filter(i => i >= 0);
-                
-                // Apply offsets to targets going in the same vertical direction
-                [positiveYTargets, negativeYTargets].forEach(group => {
-                    if (group.length > 1) {
-                        // Sort by distance and apply alternating offsets
-                        const sorted = group.slice().sort((a, b) => Math.abs(deltas[a].dy) - Math.abs(deltas[b].dy));
-                        sorted.forEach((idx, i) => {
-                            applyOffsets[idx] = i % 2 === 0; // Alternate offsets
-                        });
-                    }
-                });
-            }
+            // Calculate deltas and categorize by direction
+            const deltas = targetGeoms.map(geom => ({
+                dx: geom.cx - sourceGeom.cx,
+                dy: geom.cy - sourceGeom.cy
+            }));
+            
+            // Group targets by vertical direction (up vs down)
+            const upTargets = deltas.map((d, i) => d.dy < 0 ? i : -1).filter(i => i >= 0);
+            const downTargets = deltas.map((d, i) => d.dy > 0 ? i : -1).filter(i => i >= 0);
+            const horizontalTargets = deltas.map((d, i) => Math.abs(d.dy) < CONFIG.straightThreshold ? i : -1).filter(i => i >= 0);
+            
+            // Sort each group by X position for consistent ordering (left to right)
+            upTargets.sort((a, b) => deltas[a].dx - deltas[b].dx);
+            downTargets.sort((a, b) => deltas[a].dx - deltas[b].dx);
+            horizontalTargets.sort((a, b) => deltas[a].dy - deltas[b].dy);
+            
+            // Create spreadInfo for each target
+            const spreadInfos = targetCells.map((_, i) => {
+                // Find which group this target belongs to and its position within
+                let group, indexInGroup;
+                if (upTargets.includes(i)) {
+                    group = upTargets;
+                    indexInGroup = upTargets.indexOf(i);
+                } else if (downTargets.includes(i)) {
+                    group = downTargets;
+                    indexInGroup = downTargets.indexOf(i);
+                } else {
+                    group = horizontalTargets;
+                    indexInGroup = horizontalTargets.indexOf(i);
+                }
+                return { index: indexInGroup, total: group.length };
+            });
             
             const connections = targetCells.map((target, i) =>
-                createConnectionLine(sourceCell, target, applyOffsets[i], useOrtho)
+                createConnectionLine(sourceCell, target, spreadInfos[i], useOrtho)
             );
             
             allSourceCells.add(sourceCell);
