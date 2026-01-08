@@ -648,7 +648,17 @@ if (!empty($structuredData['itemListElement'])):
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
         
-        // Calculate spread offset for multiple lines in same direction
+        // Straight paths: always exit from center, no spread
+        if (absDy < CONFIG.straightThreshold) {
+            // Horizontal path - exit from center of side
+            return { x: dx > 0 ? rect.right : rect.left, y: cy };
+        }
+        if (absDx < CONFIG.straightThreshold) {
+            // Vertical path - exit from center of top/bottom
+            return { x: cx, y: dy > 0 ? rect.bottom : rect.top };
+        }
+        
+        // L-shaped path - apply spread offset for multiple targets in same direction
         // spreadInfo: { index: 0-based position, total: count in this direction }
         let spreadOffset = 0;
         if (spreadInfo && spreadInfo.total > 1) {
@@ -657,15 +667,6 @@ if (!empty($structuredData['itemListElement'])):
             spreadOffset = -spreadWidth / 2 + step * spreadInfo.index;
         }
         
-        if (absDy < CONFIG.straightThreshold) {
-            // Horizontal path - spread along Y axis
-            return { x: dx > 0 ? rect.right : rect.left, y: cy + spreadOffset };
-        }
-        if (absDx < CONFIG.straightThreshold) {
-            // Vertical path - spread along X axis
-            return { x: cx + spreadOffset, y: dy > 0 ? rect.bottom : rect.top };
-        }
-        // L-shaped path - spread along X axis (exit from top/bottom)
         return { x: cx + spreadOffset, y: dy > 0 ? rect.bottom : rect.top };
     }
     
