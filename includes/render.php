@@ -571,6 +571,54 @@ if (!empty($structuredData['itemListElement'])):
     const allCellWrappers = Array.from(container.querySelectorAll('.icon-grid-cell-wrapper'));
     const lineOverlay = document.getElementById(blockId + '-overlay');
     
+    // OPTIMIZATION 1: Pre-build position-to-cell lookup map (eliminates repeated querySelectorAll)
+    const positionMap = new Map();
+    allCellWrappers.forEach(wrapper => {
+        const pos = parseInt(wrapper.dataset.fullGridPosition);
+        const cell = wrapper.querySelector('.icon-grid-cell');
+        if (pos && cell) positionMap.set(pos, cell);
+    });
+    
+    // OPTIMIZATION 2: Geometry cache for cells (eliminates repeated getBoundingClientRect)
+    const geometryCache = new Map();
+    let geometryCacheValid = false;
+    const wrapperEl = container.querySelector('.icon-grid-wrapper');
+    
+    function invalidateGeometryCache() {
+        geometryCacheValid = false;
+        geometryCache.clear();
+    }
+    
+    function rebuildGeometryCache() {
+        if (geometryCacheValid) return;
+        geometryCache.clear();
+        const wrapperRect = wrapperEl.getBoundingClientRect();
+        positionMap.forEach((cell, pos) => {
+            const rect = cell.getBoundingClientRect();
+            const adjustedRect = {
+                left: rect.left - wrapperRect.left,
+                right: rect.right - wrapperRect.left,
+                top: rect.top - wrapperRect.top,
+                bottom: rect.bottom - wrapperRect.top,
+                width: rect.width,
+                height: rect.height
+            };
+            geometryCache.set(cell, {
+                cx: adjustedRect.left + rect.width / 2,
+                cy: adjustedRect.top + rect.height / 2,
+                rect: adjustedRect
+            });
+        });
+        geometryCacheValid = true;
+    }
+    
+    // Invalidate geometry cache on resize (debounced)
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(invalidateGeometryCache, 150);
+    }, { passive: true });
+    
     // Cache DOM element references on each cell for performance
     allCellWrappers.forEach(wrapper => {
         const cell = wrapper.querySelector('.icon-grid-cell');
@@ -584,14 +632,10 @@ if (!empty($structuredData['itemListElement'])):
     });
     
     // Helper functions
-    // getCellAtPosition uses data-full-grid-position for animation rounds lookup
-    // This ensures positions match what the editor shows, regardless of DOM order
+    // getCellAtPosition uses pre-built position map for O(1) lookup
     function getCellAtPosition(pos) {
-        // Validate position is within current grid bounds
         if (pos < 1 || pos > totalTiles) return null;
-        // Use full-grid-position attribute for lookup (matches animation rounds editor)
-        const wrapper = container.querySelector(`.icon-grid-cell-wrapper[data-full-grid-position="${pos}"]`);
-        return wrapper ? wrapper.querySelector('.icon-grid-cell') : null;
+        return positionMap.get(pos) || null;
     }
     
     // Check if a position (1-based full-grid position) is within the visible subgrid
@@ -663,24 +707,10 @@ if (!empty($structuredData['itemListElement'])):
         }
     }
     
+    // getCellGeometry uses cached geometry (rebuilt once per round if invalidated)
     function getCellGeometry(cell) {
-        const rect = cell.getBoundingClientRect();
-        const wrapperEl = container.querySelector('.icon-grid-wrapper');
-        const wrapperRect = wrapperEl.getBoundingClientRect();
-        // Adjust coordinates to be relative to the wrapper
-        const adjustedRect = {
-            left: rect.left - wrapperRect.left,
-            right: rect.right - wrapperRect.left,
-            top: rect.top - wrapperRect.top,
-            bottom: rect.bottom - wrapperRect.top,
-            width: rect.width,
-            height: rect.height
-        };
-        return {
-            cx: adjustedRect.left + rect.width / 2,
-            cy: adjustedRect.top + rect.height / 2,
-            rect: adjustedRect
-        };
+        rebuildGeometryCache();
+        return geometryCache.get(cell) || null;
     }
     
     function getOrthoExitPoint(geom, dx, dy, spreadInfo = null) {
