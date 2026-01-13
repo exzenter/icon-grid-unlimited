@@ -21,6 +21,7 @@ import {
     ColorPicker,
     ColorIndicator,
     Dropdown,
+    SelectControl,
     __experimentalVStack as VStack
 } from '@wordpress/components';
 import { useState } from '@wordpress/element';
@@ -700,9 +701,27 @@ export default function Edit({ attributes, setAttributes }) {
                         label={__('Inactive Stroke Width', 'icon-grid-unlimited')}
                         value={config.inactiveStrokeWidth || 1.5}
                         onChange={(v) => updateConfig('inactiveStrokeWidth', v)}
-                        min={0.5}
+                        min={0.1}
                         max={5}
-                        step={0.25}
+                        step={0.1}
+                    />
+                    <ToggleControl
+                        label={__('Non-Scaling Stroke', 'icon-grid-unlimited')}
+                        checked={config.nonScalingStroke !== false}
+                        onChange={(v) => updateConfig('nonScalingStroke', v)}
+                        help={__('When disabled, stroke width scales with the icon (sharper when scaled down)', 'icon-grid-unlimited')}
+                    />
+                    <SelectControl
+                        label={__('Shape Rendering', 'icon-grid-unlimited')}
+                        value={config.shapeRendering || 'auto'}
+                        onChange={(v) => updateConfig('shapeRendering', v)}
+                        options={[
+                            { label: __('Auto (default)', 'icon-grid-unlimited'), value: 'auto' },
+                            { label: __('Crisp Edges (sharp lines)', 'icon-grid-unlimited'), value: 'crispEdges' },
+                            { label: __('Geometric Precision', 'icon-grid-unlimited'), value: 'geometricPrecision' },
+                            { label: __('Optimize Speed', 'icon-grid-unlimited'), value: 'optimizeSpeed' },
+                        ]}
+                        help={__('Try "Crisp Edges" for sharper strokes like CSS borders', 'icon-grid-unlimited')}
                     />
                     <ToggleControl
                         label={__('Enable Glassmorphism', 'icon-grid-unlimited')}

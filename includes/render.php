@@ -111,6 +111,8 @@ $iconScale = $attributes['config']['iconScale'] ?? 1;
 $inactiveBorderColor = $attributes['config']['inactiveBorderColor'] ?? '#00000031';
 $inactiveStrokeColor = $attributes['config']['inactiveStrokeColor'] ?? '#333333';
 $inactiveStrokeWidth = $attributes['config']['inactiveStrokeWidth'] ?? 1.5;
+$nonScalingStroke = $attributes['config']['nonScalingStroke'] ?? true;
+$shapeRendering = $attributes['config']['shapeRendering'] ?? 'auto';
 $iconOffsetX = $attributes['config']['iconOffsetX'] ?? 0;
 $iconOffsetY = $attributes['config']['iconOffsetY'] ?? 0;
 $inactiveGlass = $attributes['config']['inactiveGlass'] ?? false;
@@ -169,7 +171,8 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
         #<?php echo esc_attr($block_id); ?> .icon-grid-wireframe ellipse {
             stroke: <?php echo esc_attr($inactiveStrokeColor); ?>;
             stroke-width: <?php echo esc_attr($inactiveStrokeWidth); ?>;
-            vector-effect: non-scaling-stroke;
+            <?php if ($nonScalingStroke): ?>vector-effect: non-scaling-stroke;<?php endif; ?>
+            <?php if ($shapeRendering !== 'auto'): ?>shape-rendering: <?php echo esc_attr($shapeRendering); ?>;<?php endif; ?>
         }
         <?php if ($enlargeEnabled): ?>
         /* Expansion tile positioning - absolute, hidden initially */

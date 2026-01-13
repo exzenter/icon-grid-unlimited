@@ -86,6 +86,8 @@
                 "inactiveBorderColor": "#00000031",
                 "inactiveStrokeColor": "#333333",
                 "inactiveStrokeWidth": 1.5,
+                "nonScalingStroke": true,
+                "shapeRendering": "auto",
                 "hoverScale": 1.08,
                 "hoverBgColor": "#ffffff",
                 "hoverSlideAmount": -10,
