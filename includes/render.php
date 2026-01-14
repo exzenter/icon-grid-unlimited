@@ -923,7 +923,7 @@ if (!empty($structuredData['itemListElement'])):
             targets: cellBg,
             scale: 1,
             backgroundColor: CONFIG.inactiveBgColor || (CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)'),
-            borderWidth: 1,
+            borderWidth: CONFIG.inactiveBorderWidth ?? 1,
             backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
             duration: CONFIG.cellAnimDuration * 1000,
             easing: 'easeInOutQuad'
@@ -1136,7 +1136,7 @@ if (!empty($structuredData['itemListElement'])):
                 targets: cellBg, 
                 scale: 1, 
                 backgroundColor: CONFIG.inactiveBgColor || (CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)'), 
-                borderWidth: 1, 
+                borderWidth: CONFIG.inactiveBorderWidth ?? 1, 
                 backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
                 duration: 250, 
                 easing: 'easeOutQuad' 
