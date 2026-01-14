@@ -692,6 +692,14 @@ export default function Edit({ attributes, setAttributes }) {
                         color={config.inactiveBorderColor || '#00000031'}
                         onChange={(color) => updateConfig('inactiveBorderColor', color)}
                     />
+                    <RangeControl
+                        label={__('Inactive Border Width (px)', 'icon-grid-unlimited')}
+                        value={config.inactiveBorderWidth ?? 1}
+                        onChange={(v) => updateConfig('inactiveBorderWidth', v)}
+                        min={0}
+                        max={5}
+                        step={0.5}
+                    />
                     <PopupColorPicker
                         label={__('Inactive Stroke Color', 'icon-grid-unlimited')}
                         color={config.inactiveStrokeColor || '#333333'}

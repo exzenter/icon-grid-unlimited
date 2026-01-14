@@ -84,6 +84,7 @@
                 "lineStrokeWidth": 2,
                 "iconScale": 1,
                 "inactiveBorderColor": "#00000031",
+                "inactiveBorderWidth": 1,
                 "inactiveStrokeColor": "#333333",
                 "inactiveStrokeWidth": 1.5,
                 "nonScalingStroke": true,

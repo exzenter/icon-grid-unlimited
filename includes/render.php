@@ -109,6 +109,7 @@ $visibleCols = $enlargeEnabled ? $subgridCols : $gridCols;
 // Extract config values for styles
 $iconScale = $attributes['config']['iconScale'] ?? 1;
 $inactiveBorderColor = $attributes['config']['inactiveBorderColor'] ?? '#00000031';
+$inactiveBorderWidth = $attributes['config']['inactiveBorderWidth'] ?? 1;
 $inactiveStrokeColor = $attributes['config']['inactiveStrokeColor'] ?? '#333333';
 $inactiveStrokeWidth = $attributes['config']['inactiveStrokeWidth'] ?? 1.5;
 $nonScalingStroke = $attributes['config']['nonScalingStroke'] ?? true;
@@ -151,6 +152,8 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
         }
         #<?php echo esc_attr($block_id); ?> .icon-grid-cell-bg {
             border-color: <?php echo esc_attr($inactiveBorderColor); ?>;
+            border-width: <?php echo esc_attr($inactiveBorderWidth); ?>px;
+            border-style: solid;
             border-radius: <?php echo esc_attr($tileBorderRadius); ?>px;
             background: <?php echo esc_attr($inactiveBgColor); ?>;
             <?php if ($inactiveGlass): ?>
