@@ -107,7 +107,10 @@
                 "activeShadowY": 8,
                 "activeShadowBlur": 10,
                 "activeShadowSpread": 0,
-                "activeShadowColor": "rgba(0,0,0,0.10)"
+                "activeShadowColor": "rgba(0,0,0,0.10)",
+                "activeShadowFadeIn": 0.3,
+                "activeShadowFadeOut": 0.25,
+                "activeShadowOpacityOnly": false
             }
         },
         "animationRounds": {

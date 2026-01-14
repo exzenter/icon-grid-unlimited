@@ -863,15 +863,29 @@ if (!empty($structuredData['itemListElement'])):
         // Kill any in-progress animations
         anime.remove([cellBg, wrapper, wireframe, gradient]);
 
+        // Shadow animation - separate duration and opacity-only mode
+        const shadowFadeInDuration = (CONFIG.activeShadowFadeIn ?? 0.3) * 1000;
+        const activeShadow = `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`;
+        const hiddenShadow = CONFIG.activeShadowOpacityOnly
+            ? `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px rgba(0,0,0,0)`
+            : '0 0 0 0 rgba(0,0,0,0)';
+        
+        // Animate cell background (scale, bg, backdrop)
         anime({
             targets: cellBg,
             scale: CONFIG.hoverScale || 1.08,
             backgroundColor: CONFIG.hoverBgColor || '#fff',
-            boxShadow: `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`,
             borderWidth: 0,
             backdropFilter: CONFIG.hoverGlass ? `blur(${CONFIG.hoverGlassBlur || 10}px)` : (CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)'),
             duration: CONFIG.cellAnimDuration * 1000,
             easing: 'easeOutBack'
+        });
+        // Animate shadow separately with its own duration
+        anime({
+            targets: cellBg,
+            boxShadow: [hiddenShadow, activeShadow],
+            duration: shadowFadeInDuration,
+            easing: 'easeOutQuad'
         });
         if (wrapper) anime({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutBack' });
         if (wireframe) anime({ targets: wireframe, opacity: 0, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
@@ -894,15 +908,29 @@ if (!empty($structuredData['itemListElement'])):
         // Kill any in-progress animations
         anime.remove([cellBg, wrapper, wireframe, gradient]);
         
+        // Shadow animation - separate duration and opacity-only mode
+        const shadowFadeOutDuration = (CONFIG.activeShadowFadeOut ?? 0.25) * 1000;
+        const activeShadow = `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`;
+        const hiddenShadow = CONFIG.activeShadowOpacityOnly
+            ? `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px rgba(0,0,0,0)`
+            : '0 0 0 0 rgba(0,0,0,0)';
+        
+        // Animate cell background (scale, bg, backdrop)
         anime({
             targets: cellBg,
             scale: 1,
             backgroundColor: CONFIG.inactiveBgColor || (CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)'),
-            boxShadow: '0 0 0 0 rgba(0,0,0,0)',
             borderWidth: 1,
             backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
             duration: CONFIG.cellAnimDuration * 1000,
             easing: 'easeInOutQuad'
+        });
+        // Animate shadow separately with its own duration
+        anime({
+            targets: cellBg,
+            boxShadow: [activeShadow, hiddenShadow],
+            duration: shadowFadeOutDuration,
+            easing: 'easeInQuad'
         });
         if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: CONFIG.cellAnimDuration * 1000, easing: 'easeInOutQuad' });
         if (wireframe) anime({ targets: wireframe, opacity: 1, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
@@ -1060,15 +1088,27 @@ if (!empty($structuredData['itemListElement'])):
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
             
+            // Shadow animation - separate duration and opacity-only mode
+            const shadowFadeInDuration = (CONFIG.activeShadowFadeIn ?? 0.3) * 1000;
+            const activeShadow = `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`;
+            const hiddenShadow = CONFIG.activeShadowOpacityOnly
+                ? `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px rgba(0,0,0,0)`
+                : '0 0 0 0 rgba(0,0,0,0)';
+            
             anime({ 
                 targets: cellBg, 
                 scale: CONFIG.hoverScale || 1.08, 
                 backgroundColor: CONFIG.hoverBgColor || '#fff', 
-                boxShadow: `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`, 
                 borderWidth: 0, 
                 backdropFilter: CONFIG.hoverGlass ? `blur(${CONFIG.hoverGlassBlur || 10}px)` : (CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)'),
                 duration: 300, 
                 easing: 'easeOutBack' 
+            });
+            anime({
+                targets: cellBg,
+                boxShadow: [hiddenShadow, activeShadow],
+                duration: shadowFadeInDuration,
+                easing: 'easeOutQuad'
             });
             if (wrapper) anime({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: 300, easing: 'easeOutBack' });
             if (wireframe) anime({ targets: wireframe, opacity: 0, duration: 250, easing: 'easeOutQuad' });
@@ -1082,15 +1122,27 @@ if (!empty($structuredData['itemListElement'])):
             // Kill any in-progress animations to prevent conflicts
             anime.remove([cellBg, wrapper, wireframe, gradient]);
             
+            // Shadow animation - separate duration and opacity-only mode
+            const shadowFadeOutDuration = (CONFIG.activeShadowFadeOut ?? 0.25) * 1000;
+            const activeShadowOut = `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px ${CONFIG.activeShadowColor || 'rgba(0,0,0,0.10)'}`;
+            const hiddenShadowOut = CONFIG.activeShadowOpacityOnly
+                ? `${CONFIG.activeShadowX ?? 0}px ${CONFIG.activeShadowY ?? 8}px ${CONFIG.activeShadowBlur ?? 10}px ${CONFIG.activeShadowSpread ?? 0}px rgba(0,0,0,0)`
+                : '0 0 0 0 rgba(0,0,0,0)';
+            
             anime({ 
                 targets: cellBg, 
                 scale: 1, 
                 backgroundColor: CONFIG.inactiveBgColor || (CONFIG.inactiveGlass ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)'), 
-                boxShadow: '0 0 0 0 rgba(0,0,0,0)', 
                 borderWidth: 1, 
                 backdropFilter: CONFIG.inactiveGlass ? `blur(${CONFIG.inactiveGlassBlur || 10}px)` : 'blur(0px)',
                 duration: 250, 
                 easing: 'easeOutQuad' 
+            });
+            anime({
+                targets: cellBg,
+                boxShadow: [activeShadowOut, hiddenShadowOut],
+                duration: shadowFadeOutDuration,
+                easing: 'easeInQuad'
             });
             if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: 250, easing: 'easeOutQuad' });
             if (wireframe) anime({ targets: wireframe, opacity: 1, duration: 250, easing: 'easeOutQuad' });

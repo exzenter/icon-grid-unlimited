@@ -833,6 +833,34 @@ export default function Edit({ attributes, setAttributes }) {
                         color={config.activeShadowColor || 'rgba(0,0,0,0.10)'}
                         onChange={(color) => updateConfig('activeShadowColor', color)}
                     />
+                    <Flex gap={4} style={{ marginTop: '10px' }}>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Fade In (s)', 'icon-grid-unlimited')}
+                                value={config.activeShadowFadeIn ?? 0.3}
+                                onChange={(v) => updateConfig('activeShadowFadeIn', v)}
+                                min={0.05}
+                                max={2}
+                                step={0.05}
+                            />
+                        </FlexItem>
+                        <FlexItem style={{ flex: 1 }}>
+                            <RangeControl
+                                label={__('Fade Out (s)', 'icon-grid-unlimited')}
+                                value={config.activeShadowFadeOut ?? 0.25}
+                                onChange={(v) => updateConfig('activeShadowFadeOut', v)}
+                                min={0.05}
+                                max={2}
+                                step={0.05}
+                            />
+                        </FlexItem>
+                    </Flex>
+                    <ToggleControl
+                        label={__('Opacity-Only Animation', 'icon-grid-unlimited')}
+                        checked={config.activeShadowOpacityOnly || false}
+                        onChange={(v) => updateConfig('activeShadowOpacityOnly', v)}
+                        help={__('Animate only shadow opacity for smoother transitions', 'icon-grid-unlimited')}
+                    />
                 </PanelBody>
 
                 {/* Layout Settings */}
