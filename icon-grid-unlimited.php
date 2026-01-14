@@ -53,7 +53,8 @@ function icon_grid_unlimited_render($attributes, $content, $block) {
             'groupStaggerDelay' => 150,
             'turnOffset' => 8,
             'cornerRadius' => 20,
-            'straightThreshold' => 5
+            'straightThreshold' => 5,
+            'inactiveBorderWidth' => 1
         ],
         'animationRounds' => [],
         'iconLabels' => array_fill(0, 144, ''),

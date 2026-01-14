@@ -933,7 +933,10 @@ if (!empty($structuredData['itemListElement'])):
             targets: cellBg,
             boxShadow: [activeShadow, hiddenShadow],
             duration: shadowFadeOutDuration,
-            easing: 'easeInQuad'
+            easing: 'easeInQuad',
+            complete: () => {
+                cellBg.style.boxShadow = 'none';
+            }
         });
         if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: CONFIG.cellAnimDuration * 1000, easing: 'easeInOutQuad' });
         if (wireframe) anime({ targets: wireframe, opacity: 1, duration: CONFIG.cellAnimDuration * 1000, easing: 'easeOutQuad' });
@@ -1145,7 +1148,10 @@ if (!empty($structuredData['itemListElement'])):
                 targets: cellBg,
                 boxShadow: [activeShadowOut, hiddenShadowOut],
                 duration: shadowFadeOutDuration,
-                easing: 'easeInQuad'
+                easing: 'easeInQuad',
+                complete: () => {
+                    cellBg.style.boxShadow = 'none';
+                }
             });
             if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: 250, easing: 'easeOutQuad' });
             if (wireframe) anime({ targets: wireframe, opacity: 1, duration: 250, easing: 'easeOutQuad' });
