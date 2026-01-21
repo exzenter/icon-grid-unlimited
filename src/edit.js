@@ -402,31 +402,12 @@ export default function Edit({ attributes, setAttributes }) {
 
                     <hr style={{ margin: '20px 0', borderColor: '#ddd' }} />
 
-                    <p style={{ fontWeight: '500', fontSize: '12px', color: '#1e1e1e', marginBottom: '10px' }}>
-                        {__('Grid Gap (uses clamp)', 'icon-grid-unlimited')}
-                    </p>
-                    <Flex gap={4}>
-                        <FlexItem style={{ flex: 1 }}>
-                            <RangeControl
-                                label={__('Min (px)', 'icon-grid-unlimited')}
-                                value={config.gridGapMin || 6}
-                                onChange={(v) => updateConfig('gridGapMin', v)}
-                                min={0}
-                                max={50}
-                                step={1}
-                            />
-                        </FlexItem>
-                        <FlexItem style={{ flex: 1 }}>
-                            <RangeControl
-                                label={__('Max (px)', 'icon-grid-unlimited')}
-                                value={config.gridGapMax || 15}
-                                onChange={(v) => updateConfig('gridGapMax', v)}
-                                min={0}
-                                max={100}
-                                step={1}
-                            />
-                        </FlexItem>
-                    </Flex>
+                    <TextControl
+                        label={__('Grid Gap', 'icon-grid-unlimited')}
+                        value={config.gridGap || '0.5rem'}
+                        onChange={(v) => updateConfig('gridGap', v)}
+                        help={__('Enter a value with unit (e.g., 0.5rem, 1rem, 10px)', 'icon-grid-unlimited')}
+                    />
 
                     <ToggleControl
                         label={__('Enlarge Grid After Event', 'icon-grid-unlimited')}
@@ -731,21 +712,7 @@ export default function Edit({ attributes, setAttributes }) {
                         ]}
                         help={__('Try "Crisp Edges" for sharper strokes like CSS borders', 'icon-grid-unlimited')}
                     />
-                    <ToggleControl
-                        label={__('Enable Glassmorphism', 'icon-grid-unlimited')}
-                        checked={config.inactiveGlass}
-                        onChange={(v) => updateConfig('inactiveGlass', v)}
-                    />
-                    {config.inactiveGlass && (
-                        <RangeControl
-                            label={__('Glass Blur (px)', 'icon-grid-unlimited')}
-                            value={config.inactiveGlassBlur || 10}
-                            onChange={(v) => updateConfig('inactiveGlassBlur', v)}
-                            min={0}
-                            max={50}
-                            step={1}
-                        />
-                    )}
+
                 </PanelBody>
 
                 {/* Hover Settings */}
@@ -763,21 +730,7 @@ export default function Edit({ attributes, setAttributes }) {
                         color={config.hoverBgColor || '#ffffff'}
                         onChange={(color) => updateConfig('hoverBgColor', color)}
                     />
-                    <ToggleControl
-                        label={__('Enable Glassmorphism', 'icon-grid-unlimited')}
-                        checked={config.hoverGlass}
-                        onChange={(v) => updateConfig('hoverGlass', v)}
-                    />
-                    {config.hoverGlass && (
-                        <RangeControl
-                            label={__('Glass Blur (px)', 'icon-grid-unlimited')}
-                            value={config.hoverGlassBlur || 10}
-                            onChange={(v) => updateConfig('hoverGlassBlur', v)}
-                            min={0}
-                            max={50}
-                            step={1}
-                        />
-                    )}
+
                     <RangeControl
                         label={__('Hover Slide Amount (%)', 'icon-grid-unlimited')}
                         value={config.hoverSlideAmount || -10}

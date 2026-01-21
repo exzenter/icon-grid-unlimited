@@ -119,6 +119,11 @@ $iconOffsetY = $attributes['config']['iconOffsetY'] ?? 0;
 $gridGap = $attributes['config']['gridGap'] ?? '0.5rem';
 $tileBorderRadius = $attributes['config']['tileBorderRadius'] ?? 5;
 $inactiveBgColor = $attributes['config']['inactiveBgColor'] ?? 'rgba(255,255,255,0)';
+$activeShadowX = $attributes['config']['activeShadowX'] ?? 0;
+$activeShadowY = $attributes['config']['activeShadowY'] ?? 8;
+$activeShadowBlur = $attributes['config']['activeShadowBlur'] ?? 10;
+$activeShadowSpread = $attributes['config']['activeShadowSpread'] ?? 0;
+$activeShadowColor = $attributes['config']['activeShadowColor'] ?? 'rgba(0,0,0,0.10)';
 $perTileIconSettings = $attributes['perTileIconSettings'] ?? [];
 $tileBlockSettings = $attributes['tileBlockSettings'] ?? [];
 $tileBlocks = $attributes['tileBlocks'] ?? [];
@@ -192,12 +197,23 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                 $scaleLabel = !empty($settings['scaleLabel']);
                 $storageIdx = intval($tileIndex);
                 
+                // Calculate centering translation if enabled
+                // CSS transform percentage is relative to the element's own size, not parent
+                // To move by X% of parent when element is W% of parent:
+                // translateX = X / (W/100) = X * 100 / W
+                // For centering: X = -(W-100)/2, so translateX = -(W-100)/2 * 100/W = -(W-100)*50/W
                 $centerTranslateX = $centerCell && $cellWidth > 0 ? -($cellWidth - 100) * 50 / $cellWidth : 0;
                 $centerTranslateY = $centerCell && $cellHeight > 0 ? -($cellHeight - 100) * 50 / $cellHeight : 0;
+                
+                // Add manual offset (convert from parent-relative to element-relative)
                 $manualTranslateX = $cellWidth > 0 ? $cellOffsetX * 100 / $cellWidth : 0;
                 $manualTranslateY = $cellHeight > 0 ? $cellOffsetY * 100 / $cellHeight : 0;
+                
+                // Total translation
                 $totalTranslateX = $centerTranslateX + $manualTranslateX;
                 $totalTranslateY = $centerTranslateY + $manualTranslateY;
+                
+                // Calculate label scale factor (average of width and height scale)
                 $labelScale = ($cellWidth + $cellHeight) / 200;
         ?>
         #<?php echo esc_attr($block_id); ?> .icon-grid-cell-wrapper[data-storage-index="<?php echo $storageIdx; ?>"] .icon-grid-cell > .icon-grid-wrapper svg {
@@ -250,24 +266,32 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
         <div class="icon-grid-container" data-config='<?php echo esc_attr($config_json); ?>'>
             <?php 
             $iconIndex = 0;
-            $subgridPosition = 0;
-            $expansionTiles = [];
+            $subgridPosition = 0; // Position counter for subgrid tiles (1-based)
+            $expansionTiles = []; // Store expansion tiles to render after subgrid
             
+            // Loop through all max grid positions
             for ($maxRow = 0; $maxRow < $gridRows; $maxRow++):
                 for ($maxCol = 0; $maxCol < $gridCols; $maxCol++):
+                    // Convert to storage index (12-column layout)
                     $storageIndex = $maxRow * 12 + $maxCol;
                     $label = $attributes['iconLabels'][$storageIndex] ?? '';
+                    
+                    // Full grid position (1-based) - used for animation rounds lookup
+                    // This matches what the animation rounds editor shows
                     $fullGridPosition = $maxRow * $gridCols + $maxCol + 1;
                     
+                    // Check if this tile is in the subgrid
                     $isInSubgrid = !$enlargeEnabled || (
                         $maxRow >= $subgridStartRow && $maxRow < $subgridStartRow + $subgridRows &&
                         $maxCol >= $subgridStartCol && $maxCol < $subgridStartCol + $subgridCols
                     );
                     
                     if ($isInSubgrid):
+                        // Render subgrid tile normally in grid flow
                         $subgridPosition++;
                         $position = $subgridPosition;
                         
+                        // Get per-tile transition settings
                         $tileSettings = $perTileIconSettings[$storageIndex] ?? [];
                         $isTransitionSource = !empty($tileSettings['isTransitionSource']);
                         $transitionId = $tileSettings['transitionId'] ?? '';
@@ -275,6 +299,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $transitionColorOverride = $tileSettings['transitionColorOverride'] ?? '';
                         $seoUrl = ($attributes['seoData'][$label]['url'] ?? '#');
                         
+                        // Build transition data attributes
                         $transitionAttrs = '';
                         if ($isTransitionSource && !empty($label)) {
                             $transitionAttrs = ' data-transition-role="source"';
@@ -293,10 +318,12 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $gradient = $default_gradients[$iconIndex % count($default_gradients)];
                         $gradientId = 'grad-' . $block_id . '-' . $iconIndex;
                         
+                        // Check if this is a block-enabled tile
                         $blockSettings = $tileBlockSettings[$storageIndex] ?? ['enabled' => false];
                         $isBlockTile = !empty($blockSettings['enabled']);
                         $blockContent = $tileBlocks[$storageIndex] ?? '';
                         
+                        // Build CSS classes for block tiles
                         $cellClasses = 'icon-grid-cell';
                         if ($isBlockTile) {
                             $cellClasses .= ' block-tile';
@@ -340,12 +367,15 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
             </div>
             <?php
                     else:
+                        // Store expansion tile data for later
                         $expansionTiles[] = [
                             'storageIndex' => $storageIndex,
                             'label' => $label,
                             'maxRow' => $maxRow,
                             'maxCol' => $maxCol,
+                            // Full grid position for animation rounds lookup
                             'fullGridPosition' => $fullGridPosition,
+                            // Calculate position relative to subgrid for absolute positioning
                             'offsetRow' => $maxRow - $subgridStartRow,
                             'offsetCol' => $maxCol - $subgridStartCol
                         ];
@@ -353,7 +383,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                 endfor;
             endfor;
             
-            // Render expansion tiles
+            // Render expansion tiles with absolute positioning
             if ($enlargeEnabled && !empty($expansionTiles)):
                 $expansionPosition = $subgridPosition;
                 foreach ($expansionTiles as $tileData):
@@ -364,11 +394,13 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $offsetRow = $tileData['offsetRow'];
                     $offsetCol = $tileData['offsetCol'];
                     
+                    // Calculate stagger delay based on distance from subgrid center
                     $centerRow = $subgridRows / 2;
                     $centerCol = $subgridCols / 2;
                     $distance = sqrt(pow($offsetRow - $centerRow + 0.5, 2) + pow($offsetCol - $centerCol + 0.5, 2));
                     $staggerDelay = round($distance * 50);
                     
+                    // Get per-tile transition settings
                     $tileSettings = $perTileIconSettings[$storageIndex] ?? [];
                     $isTransitionSource = !empty($tileSettings['isTransitionSource']);
                     $transitionId = $tileSettings['transitionId'] ?? '';
@@ -376,6 +408,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $transitionColorOverride = $tileSettings['transitionColorOverride'] ?? '';
                     $seoUrl = ($attributes['seoData'][$label]['url'] ?? '#');
                     
+                    // Build transition data attributes
                     $transitionAttrs = '';
                     if ($isTransitionSource && !empty($label)) {
                         $transitionAttrs = ' data-transition-role="source"';
@@ -399,10 +432,12 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $gradient = $default_gradients[$iconIndex % count($default_gradients)];
                         $gradientId = 'grad-' . $block_id . '-exp-' . $iconIndex;
                         
+                        // Check if this is a block-enabled tile
                         $blockSettings = $tileBlockSettings[$storageIndex] ?? ['enabled' => false];
                         $isBlockTile = !empty($blockSettings['enabled']);
                         $blockContent = $tileBlocks[$storageIndex] ?? '';
                         
+                        // Build CSS classes for block tiles
                         $cellClasses = 'icon-grid-cell';
                         if ($isBlockTile) {
                             $cellClasses .= ' block-tile';
@@ -497,3 +532,4 @@ if (!empty($structuredData['itemListElement'])):
 <?php echo wp_json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>
 </script>
 <?php endif; ?>
+

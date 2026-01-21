@@ -96,12 +96,7 @@
                 "iconOffsetY": 0,
                 "transitionOffset": 0,
                 "startupDelay": 2000,
-                "hoverGlass": false,
-                "hoverGlassBlur": 10,
-                "inactiveGlass": false,
-                "inactiveGlassBlur": 10,
-                "gridGapMin": 6,
-                "gridGapMax": 15,
+                "gridGap": "0.5rem",
                 "tileBorderRadius": 5,
                 "inactiveBgColor": "rgba(255,255,255,0)",
                 "activeShadowX": 0,
@@ -448,5 +443,6 @@
     "textdomain": "icon-grid-unlimited",
     "editorScript": "file:./index.js",
     "editorStyle": "file:./index.css",
-    "style": "file:./style-index.css"
+    "style": "file:./style-index.css",
+    "viewScript": "file:./view.js"
 }
