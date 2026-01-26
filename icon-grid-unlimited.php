@@ -15,8 +15,12 @@ if (!defined('ABSPATH')) {
  * Register the block
  */
 function icon_grid_unlimited_init() {
-    register_block_type(__DIR__ . '/build', [
+    register_block_type(__DIR__ . '/build/grid', [
         'render_callback' => 'icon_grid_unlimited_render'
+    ]);
+
+    register_block_type(__DIR__ . '/build/helper', [
+        'render_callback' => 'icon_grid_unlimited_render_helper'
     ]);
 }
 add_action('init', 'icon_grid_unlimited_init');
@@ -25,7 +29,7 @@ add_action('init', 'icon_grid_unlimited_init');
  * Enqueue anime.js for frontend (MIT licensed, ~17KB vs GSAP's 60KB)
  */
 function icon_grid_unlimited_enqueue_assets() {
-    if (has_block('icon-grid-unlimited/icon-grid')) {
+    if (has_block('icon-grid-unlimited/icon-grid') || has_block('icon-grid-unlimited/icon-grid-helper')) {
         wp_enqueue_script(
             'animejs',
             'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js',
@@ -78,5 +82,14 @@ function icon_grid_unlimited_render($attributes, $content, $block) {
     
     ob_start();
     include __DIR__ . '/includes/render.php';
+    return ob_get_clean();
+}
+
+/**
+ * Render the helper block on frontend
+ */
+function icon_grid_unlimited_render_helper($attributes, $content) {
+    ob_start();
+    include __DIR__ . '/includes/render-helper.php';
     return ob_get_clean();
 }
