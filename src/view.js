@@ -13,41 +13,6 @@
         // Find all icon grid blocks on the page
         const grids = document.querySelectorAll('.wp-block-icon-grid-unlimited-icon-grid');
         grids.forEach(initGrid);
-
-        // Find and initialize helper blocks
-        initHelperBlocks();
-    }
-
-    function initHelperBlocks() {
-        const helpers = document.querySelectorAll('.icon-grid-helper[data-transition-target]');
-        helpers.forEach(helper => {
-            const targetId = helper.dataset.transitionTarget;
-            if (!targetId) return;
-
-            // Find target tile (could be anywhere on page)
-            const getTargetTile = () => document.querySelector(`.icon-grid-cell-wrapper[data-transition-id="${targetId}"] .icon-grid-cell`);
-
-            helper.addEventListener('mouseenter', () => {
-                const target = getTargetTile();
-                if (target) target.dispatchEvent(new Event('mouseenter', { bubbles: true }));
-            });
-
-            helper.addEventListener('mouseleave', () => {
-                const target = getTargetTile();
-                if (target) target.dispatchEvent(new Event('mouseleave', { bubbles: true }));
-            });
-
-            helper.addEventListener('click', (e) => {
-                // If the click already happened on a link inside the helper, let it be
-                if (e.target.closest('a')) return;
-
-                const target = getTargetTile();
-                if (target) {
-                    e.preventDefault();
-                    target.click(); // This will trigger the link in the grid
-                }
-            });
-        });
     }
 
     function initGrid(container) {
@@ -572,26 +537,11 @@
         // Hover animations
         container.querySelectorAll('.icon-grid-cell').forEach(cell => {
             const { _cellBg: cellBg, _wrapper: wrapper, _wireframe: wireframe, _gradient: gradient, _label: label } = cell;
-            const cellWrapper = cell.closest('.icon-grid-cell-wrapper');
-            const transitionId = cellWrapper?.dataset.transitionId;
-            let matchingHelpers = null;
-
-            const getHelpers = () => {
-                if (!transitionId) return null;
-                if (!matchingHelpers) {
-                    matchingHelpers = document.querySelectorAll(`.icon-grid-helper[data-transition-target="${transitionId}"]`);
-                }
-                return matchingHelpers;
-            };
 
             cell.addEventListener('mouseenter', () => {
                 if (currentlyHighlighted.has(cell)) return;
 
-                // Add reverse hover class
-                getHelpers()?.forEach(h => h.classList.add('tilehover'));
-
                 anime.remove([cellBg, wrapper, wireframe, gradient]);
-                // ... rest of hover logic
 
                 const shadowFadeInDuration = (CONFIG.activeShadowFadeIn ?? 0.3) * 1000;
 
@@ -619,9 +569,6 @@
 
             cell.addEventListener('mouseleave', () => {
                 if (currentlyHighlighted.has(cell)) return;
-
-                // Remove reverse hover class
-                getHelpers()?.forEach(h => h.classList.remove('tilehover'));
 
                 anime.remove([cellBg, wrapper, wireframe, gradient]);
 
