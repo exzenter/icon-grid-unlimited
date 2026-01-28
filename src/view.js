@@ -673,5 +673,65 @@
                 resizeObserver.observe(container);
             }
         }
+
+        // =========================================
+        // Expose Global API for external control
+        // Used by wp-logo-explode Link Icon Grid feature
+        // =========================================
+
+        // Initialize global object if not exists
+        if (!window.iconGridUnlimited) {
+            window.iconGridUnlimited = {
+                grids: [],
+
+                /**
+                 * Highlight a tile by element reference
+                 * @param {HTMLElement} tileWrapper - The .icon-grid-cell-wrapper element
+                 */
+                highlightTile: function (tileWrapper) {
+                    const cell = tileWrapper.querySelector('.icon-grid-cell');
+                    if (cell && typeof highlightCell === 'function') {
+                        // Find which grid this tile belongs to
+                        const gridData = this.grids.find(g => g.container.contains(cell));
+                        if (gridData) {
+                            gridData.highlightCell(cell);
+                        }
+                    }
+                },
+
+                /**
+                 * Unhighlight a tile by element reference
+                 * @param {HTMLElement} tileWrapper - The .icon-grid-cell-wrapper element
+                 */
+                unhighlightTile: function (tileWrapper) {
+                    const cell = tileWrapper.querySelector('.icon-grid-cell');
+                    if (cell && typeof unhighlightCell === 'function') {
+                        // Find which grid this tile belongs to
+                        const gridData = this.grids.find(g => g.container.contains(cell));
+                        if (gridData) {
+                            gridData.unhighlightCell(cell);
+                        }
+                    }
+                },
+
+                /**
+                 * Get tile link URL
+                 * @param {HTMLElement} tileWrapper - The .icon-grid-cell-wrapper element
+                 * @returns {string|null} - The link URL or null
+                 */
+                getTileLink: function (tileWrapper) {
+                    return tileWrapper.dataset.transitionLink ||
+                        tileWrapper.querySelector('a')?.href ||
+                        null;
+                }
+            };
+        }
+
+        // Register this grid instance
+        window.iconGridUnlimited.grids.push({
+            container: container,
+            highlightCell: highlightCell,
+            unhighlightCell: unhighlightCell
+        });
     }
 })();
