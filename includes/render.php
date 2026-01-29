@@ -271,7 +271,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $tileSettings = $perTileIconSettings[$storageIndex] ?? [];
                         $isTransitionSource = !empty($tileSettings['isTransitionSource']);
                         $transitionId = $tileSettings['transitionId'] ?? '';
-                        $transitionScaleExplode = $tileSettings['transitionScaleExplode'] ?? 100;
+                        $transitionScaleExplode = $tileSettings['transitionScaleExplode'] ?? '';
                         $transitionColorOverride = $tileSettings['transitionColorOverride'] ?? '';
                         $seoUrl = ($attributes['seoData'][$label]['url'] ?? '#');
                         
@@ -280,7 +280,9 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                             $transitionAttrs = ' data-transition-role="source"';
                             $transitionAttrs .= ' data-transition-id="' . esc_attr($transitionId) . '"';
                             $transitionAttrs .= ' data-transition-link="' . esc_url($seoUrl) . '"';
-                            $transitionAttrs .= ' data-transition-scale-explode="' . esc_attr($transitionScaleExplode) . '"';
+                            if (!empty($transitionScaleExplode)) {
+                                $transitionAttrs .= ' data-transition-scale-explode="' . esc_attr($transitionScaleExplode) . '"';
+                            }
                             if (!empty($transitionColorOverride)) {
                                 $transitionAttrs .= ' data-transition-color="' . esc_attr($transitionColorOverride) . '"';
                             }
@@ -372,7 +374,7 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                     $tileSettings = $perTileIconSettings[$storageIndex] ?? [];
                     $isTransitionSource = !empty($tileSettings['isTransitionSource']);
                     $transitionId = $tileSettings['transitionId'] ?? '';
-                    $transitionScaleExplode = $tileSettings['transitionScaleExplode'] ?? 100;
+                    $transitionScaleExplode = $tileSettings['transitionScaleExplode'] ?? '';
                     $transitionColorOverride = $tileSettings['transitionColorOverride'] ?? '';
                     $seoUrl = ($attributes['seoData'][$label]['url'] ?? '#');
                     
@@ -381,7 +383,9 @@ $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffs
                         $transitionAttrs = ' data-transition-role="source"';
                         $transitionAttrs .= ' data-transition-id="' . esc_attr($transitionId) . '"';
                         $transitionAttrs .= ' data-transition-link="' . esc_url($seoUrl) . '"';
-                        $transitionAttrs .= ' data-transition-scale-explode="' . esc_attr($transitionScaleExplode) . '"';
+                        if (!empty($transitionScaleExplode)) {
+                            $transitionAttrs .= ' data-transition-scale-explode="' . esc_attr($transitionScaleExplode) . '"';
+                        }
                         if (!empty($transitionColorOverride)) {
                             $transitionAttrs .= ' data-transition-color="' . esc_attr($transitionColorOverride) . '"';
                         }

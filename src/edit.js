@@ -1563,12 +1563,13 @@ export default function Edit({ attributes, setAttributes }) {
                                                             help={__('Unique identifier for this transition source', 'icon-grid-unlimited')}
                                                         />
                                                         <RangeControl
-                                                            label={__('Explosion Scale (%)', 'icon-grid-unlimited')}
-                                                            value={perTileIconSettings[selectedTile]?.transitionScaleExplode || 100}
+                                                            label={__('Explosion Scale', 'icon-grid-unlimited')}
+                                                            value={perTileIconSettings[selectedTile]?.transitionScaleExplode || ''}
                                                             onChange={(v) => updatePerTileSettings(selectedTile, 'transitionScaleExplode', v)}
-                                                            min={50}
-                                                            max={200}
-                                                            step={5}
+                                                            min={1}
+                                                            max={100}
+                                                            step={1}
+                                                            allowReset={true}
                                                         />
                                                         <PopupColorPicker
                                                             label={__('Explode Background Override', 'icon-grid-unlimited')}
