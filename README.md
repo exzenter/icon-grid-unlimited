@@ -3,6 +3,8 @@
 **Version**: 1.3.0
 
 **[Live Demo](https://exzenter.github.io/icon-grid-animated/)**
+**[Live Demo on Exzent.de](https://exzent.de)**
+
 
 Animated icon grid (up to 12x12) with GSAP for EXZENT Webdesign. Tiles show wireframe icons that fill with gradient on hover. Auto-highlight loop draws animated connecting lines between tiles in predefined patterns.
 
