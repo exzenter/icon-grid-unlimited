@@ -3,6 +3,8 @@
  * Extracted for caching and optimized for modern browsers
  */
 
+import anime from 'animejs';
+
 (function () {
     'use strict';
 
@@ -69,13 +71,23 @@
             if (pos && cell) positionMap.set(pos, cell);
         });
 
+        // Reverse lookup: cell -> position (for connection line caching)
+        const cellToPosition = new Map();
+        positionMap.forEach((cell, pos) => cellToPosition.set(cell, pos));
+
         // OPTIMIZATION 2: Geometry cache for cells
         const geometryCache = new Map();
         let geometryCacheValid = false;
 
+        // OPTIMIZATION 3: Connection line pool + path length cache
+        const linePool = [];
+        let linePoolIndex = 0;
+        const pathCache = new Map();
+
         function invalidateGeometryCache() {
             geometryCacheValid = false;
             geometryCache.clear();
+            pathCache.clear();
         }
 
         function rebuildGeometryCache() {
@@ -107,6 +119,33 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(invalidateGeometryCache, 150);
         }, { passive: true });
+
+        // Line pool management (avoids DOM create/remove per round)
+        function getPooledLine() {
+            let pathElement;
+            if (linePoolIndex < linePool.length) {
+                pathElement = linePool[linePoolIndex];
+                anime.remove(pathElement);
+                pathElement.style.visibility = '';
+            } else {
+                pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathElement.setAttribute('class', 'icon-grid-connecting-line');
+                pathElement.style.stroke = CONFIG.lineColor || '#333';
+                pathElement.style.strokeWidth = (CONFIG.lineStrokeWidth || 2) + 'px';
+                lineOverlay.appendChild(pathElement);
+                linePool.push(pathElement);
+            }
+            linePoolIndex++;
+            return pathElement;
+        }
+
+        function resetLinePool() {
+            for (let i = 0; i < linePoolIndex; i++) {
+                linePool[i].style.visibility = 'hidden';
+                anime.remove(linePool[i]);
+            }
+            linePoolIndex = 0;
+        }
 
         // Cache DOM element references on each cell
         allCellWrappers.forEach(wrapper => {
@@ -258,15 +297,25 @@
 
             const start = useOrtho ? getOrthoExitPoint(fromGeom, dx, dy, spreadInfo) : getDiagonalExitPoint(fromGeom, dx, dy);
             const end = useOrtho ? getOrthoEntryPoint(toGeom, dx, dy) : getDiagonalEntryPoint(toGeom, dx, dy);
+            const d = buildPathString(start, end, dx, dy, toGeom.cy, useOrtho);
 
-            const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            pathElement.setAttribute('d', buildPathString(start, end, dx, dy, toGeom.cy, useOrtho));
-            pathElement.setAttribute('class', 'icon-grid-connecting-line');
-            pathElement.style.stroke = CONFIG.lineColor || '#333';
-            pathElement.style.strokeWidth = (CONFIG.lineStrokeWidth || 2) + 'px';
-            lineOverlay.appendChild(pathElement);
+            const pathElement = getPooledLine();
+            pathElement.setAttribute('d', d);
 
-            const pathLength = pathElement.getTotalLength();
+            // Check path length cache (avoids expensive getTotalLength reflow)
+            const fromPos = cellToPosition.get(fromCell);
+            const toPos = cellToPosition.get(toCell);
+            const cacheKey = `${fromPos}-${toPos}-${spreadInfo?.index ?? 0}-${spreadInfo?.total ?? 0}-${useOrtho ? 1 : 0}`;
+
+            let pathLength;
+            const cached = pathCache.get(cacheKey);
+            if (cached && cached.d === d) {
+                pathLength = cached.pathLength;
+            } else {
+                pathLength = pathElement.getTotalLength();
+                pathCache.set(cacheKey, { d, pathLength });
+            }
+
             pathElement.style.strokeDasharray = pathLength;
             pathElement.style.strokeDashoffset = pathLength;
 
@@ -305,32 +354,20 @@
 
             if (label) label.style.visibility = 'visible';
 
-            anime.remove([cellBg, wrapper, wireframe, gradient]);
+            // O(1) cancel - avoids expensive anime.remove() global search
+            if (cell._anim) cell._anim.pause();
 
             const cellDuration = CONFIG.cellAnimDuration * 1000;
-            const shadowFadeInDuration = (CONFIG.activeShadowFadeIn ?? 0.3) * 1000;
-
-            // Batched timeline animation (reduces 5 anime() calls to 1 timeline)
             const tl = anime.timeline({ easing: 'easeOutQuad' });
 
-            // CellBg main animation
             tl.add({
                 targets: cellBg,
                 scale: CONFIG.hoverScale || 1.08,
                 backgroundColor: CONFIG.hoverBgColor || '#fff',
-                borderWidth: 0,
                 duration: cellDuration,
                 easing: 'easeOutBack'
             }, 0);
 
-            // Shadow animation (separate timing)
-            tl.add({
-                targets: cellBg,
-                boxShadow: [SHADOW.hidden, SHADOW.active],
-                duration: shadowFadeInDuration
-            }, 0);
-
-            // Wrapper slide
             if (wrapper) {
                 tl.add({
                     targets: wrapper,
@@ -340,17 +377,15 @@
                 }, 0);
             }
 
-            // Wireframe and gradient opacity (batch same-duration elements)
-            const opacityTargets = [];
-            const opacityValues = [];
-            if (wireframe) { opacityTargets.push(wireframe); opacityValues.push(0); }
-            if (gradient) { opacityTargets.push(gradient); opacityValues.push(1); }
-
-            if (opacityTargets.length > 0) {
-                opacityTargets.forEach((target, i) => {
-                    tl.add({ targets: target, opacity: opacityValues[i], duration: cellDuration }, 0);
-                });
+            if (wireframe) {
+                tl.add({ targets: wireframe, opacity: 0, duration: cellDuration }, 0);
             }
+
+            if (gradient) {
+                tl.add({ targets: gradient, opacity: 1, duration: cellDuration }, 0);
+            }
+
+            cell._anim = tl;
         }
 
         function unhighlightCell(cell) {
@@ -360,36 +395,20 @@
 
             if (label) label.style.visibility = '';
 
-            anime.remove([cellBg, wrapper, wireframe, gradient]);
+            // O(1) cancel
+            if (cell._anim) cell._anim.pause();
 
             const cellDuration = CONFIG.cellAnimDuration * 1000;
-            const shadowFadeOutDuration = (CONFIG.activeShadowFadeOut ?? 0.25) * 1000;
-
-            // Batched timeline animation (reduces 5 anime() calls to 1 timeline)
             const tl = anime.timeline({ easing: 'easeOutQuad' });
 
-            // CellBg main animation
             tl.add({
                 targets: cellBg,
                 scale: 1,
                 backgroundColor: CONFIG.inactiveBgColor || 'rgba(255,255,255,0)',
-                borderWidth: CONFIG.inactiveBorderWidth ?? 1,
                 duration: cellDuration,
                 easing: 'easeInOutQuad'
             }, 0);
 
-            // Shadow animation with cleanup callback
-            tl.add({
-                targets: cellBg,
-                boxShadow: [SHADOW.active, SHADOW.hidden],
-                duration: shadowFadeOutDuration,
-                easing: 'easeInQuad',
-                complete: () => {
-                    cellBg.style.boxShadow = 'none';
-                }
-            }, 0);
-
-            // Wrapper reset
             if (wrapper) {
                 tl.add({
                     targets: wrapper,
@@ -399,7 +418,6 @@
                 }, 0);
             }
 
-            // Wireframe and gradient opacity
             if (wireframe) {
                 tl.add({ targets: wireframe, opacity: 1, duration: cellDuration }, 0);
             }
@@ -407,6 +425,8 @@
             if (gradient) {
                 tl.add({ targets: gradient, opacity: 0, duration: cellDuration }, 0);
             }
+
+            cell._anim = tl;
         }
 
         function playNextRound() {
@@ -415,10 +435,8 @@
             currentlyHighlighted.forEach(unhighlightCell);
             currentlyHighlighted = new Set();
 
-            // Clear line overlay efficiently (avoid innerHTML)
-            while (lineOverlay.firstChild) {
-                lineOverlay.removeChild(lineOverlay.firstChild);
-            }
+            // Reset line pool (reuses DOM elements instead of create/remove)
+            resetLinePool();
 
             const round = ANIMATION_ROUNDS[currentRoundIndex];
             currentRoundIndex = (currentRoundIndex + 1) % ANIMATION_ROUNDS.length;
@@ -441,39 +459,8 @@
 
                 if (!sourceCell || targetCells.length === 0 || targetCells.some(c => !c)) return;
 
-                const sourceGeom = getCellGeometry(sourceCell);
-                const targetGeoms = targetCells.map(cell => getCellGeometry(cell));
-
-                const deltas = targetGeoms.map(geom => ({
-                    dx: geom.cx - sourceGeom.cx,
-                    dy: geom.cy - sourceGeom.cy
-                }));
-
-                const upTargets = deltas.map((d, i) => d.dy < 0 ? i : -1).filter(i => i >= 0);
-                const downTargets = deltas.map((d, i) => d.dy > 0 ? i : -1).filter(i => i >= 0);
-                const horizontalTargets = deltas.map((d, i) => Math.abs(d.dy) < CONFIG.straightThreshold ? i : -1).filter(i => i >= 0);
-
-                upTargets.sort((a, b) => deltas[a].dx - deltas[b].dx);
-                downTargets.sort((a, b) => deltas[a].dx - deltas[b].dx);
-                horizontalTargets.sort((a, b) => deltas[a].dy - deltas[b].dy);
-
-                const spreadInfos = targetCells.map((_, i) => {
-                    let grp, indexInGroup;
-                    if (upTargets.includes(i)) {
-                        grp = upTargets;
-                        indexInGroup = upTargets.indexOf(i);
-                    } else if (downTargets.includes(i)) {
-                        grp = downTargets;
-                        indexInGroup = downTargets.indexOf(i);
-                    } else {
-                        grp = horizontalTargets;
-                        indexInGroup = horizontalTargets.indexOf(i);
-                    }
-                    return { index: indexInGroup, total: grp.length };
-                });
-
                 const connections = targetCells.map((target, i) =>
-                    createConnectionLine(sourceCell, target, spreadInfos[i], useOrtho)
+                    createConnectionLine(sourceCell, target, { index: i, total: targetCells.length }, useOrtho)
                 );
 
                 allSourceCells.add(sourceCell);
@@ -505,7 +492,7 @@
                 setTimeout(() => {
                     allTargetCells.forEach(unhighlightCell);
                     currentlyHighlighted = new Set();
-                    allConnections.forEach(c => c.pathElement.remove());
+                    // Pool cleanup handled by resetLinePool() at start of next round
                 }, CONFIG.lineDrawDuration * 1000);
             }, CONFIG.highlightDuration);
         }
@@ -541,62 +528,47 @@
             cell.addEventListener('mouseenter', () => {
                 if (currentlyHighlighted.has(cell)) return;
 
-                anime.remove([cellBg, wrapper, wireframe, gradient]);
+                if (cell._anim) cell._anim.pause();
 
-                const shadowFadeInDuration = (CONFIG.activeShadowFadeIn ?? 0.3) * 1000;
+                const tl = anime.timeline({ easing: 'easeOutQuad' });
 
-                anime({
+                tl.add({
                     targets: cellBg,
                     scale: CONFIG.hoverScale || 1.08,
                     backgroundColor: CONFIG.hoverBgColor || '#fff',
-                    borderWidth: 0,
                     duration: 300,
                     easing: 'easeOutBack'
-                });
+                }, 0);
 
-                anime({
-                    targets: cellBg,
-                    boxShadow: [SHADOW.hidden, SHADOW.active],
-                    duration: shadowFadeInDuration,
-                    easing: 'easeOutQuad'
-                });
-
-                if (wrapper) anime({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: 300, easing: 'easeOutBack' });
-                if (wireframe) anime({ targets: wireframe, opacity: 0, duration: 250, easing: 'easeOutQuad' });
-                if (gradient) anime({ targets: gradient, opacity: 1, duration: 250, easing: 'easeOutQuad' });
+                if (wrapper) tl.add({ targets: wrapper, translateY: (CONFIG.hoverSlideAmount || -10) + '%', duration: 300, easing: 'easeOutBack' }, 0);
+                if (wireframe) tl.add({ targets: wireframe, opacity: 0, duration: 250 }, 0);
+                if (gradient) tl.add({ targets: gradient, opacity: 1, duration: 250 }, 0);
                 if (label) label.style.visibility = 'visible';
+
+                cell._anim = tl;
             });
 
             cell.addEventListener('mouseleave', () => {
                 if (currentlyHighlighted.has(cell)) return;
 
-                anime.remove([cellBg, wrapper, wireframe, gradient]);
+                if (cell._anim) cell._anim.pause();
 
-                const shadowFadeOutDuration = (CONFIG.activeShadowFadeOut ?? 0.25) * 1000;
+                const tl = anime.timeline({ easing: 'easeOutQuad' });
 
-                anime({
+                tl.add({
                     targets: cellBg,
                     scale: 1,
                     backgroundColor: CONFIG.inactiveBgColor || 'rgba(255,255,255,0)',
-                    borderWidth: CONFIG.inactiveBorderWidth ?? 1,
                     duration: 250,
                     easing: 'easeOutQuad'
-                });
+                }, 0);
 
-                anime({
-                    targets: cellBg,
-                    boxShadow: [SHADOW.active, SHADOW.hidden],
-                    duration: shadowFadeOutDuration,
-                    easing: 'easeInQuad',
-                    complete: () => {
-                        cellBg.style.boxShadow = 'none';
-                    }
-                });
-
-                if (wrapper) anime({ targets: wrapper, translateY: '0%', duration: 250, easing: 'easeOutQuad' });
-                if (wireframe) anime({ targets: wireframe, opacity: 1, duration: 250, easing: 'easeOutQuad' });
-                if (gradient) anime({ targets: gradient, opacity: 0, duration: 250, easing: 'easeOutQuad' });
+                if (wrapper) tl.add({ targets: wrapper, translateY: '0%', duration: 250 }, 0);
+                if (wireframe) tl.add({ targets: wireframe, opacity: 1, duration: 250 }, 0);
+                if (gradient) tl.add({ targets: gradient, opacity: 0, duration: 250 }, 0);
                 if (label) label.style.visibility = '';
+
+                cell._anim = tl;
             });
         });
 
@@ -606,15 +578,7 @@
         function startAnimation() {
             if (hasAnimated) return;
             hasAnimated = true;
-
-            function waitForAnime() {
-                if (typeof anime !== 'undefined') {
-                    playEntranceAnimation();
-                } else {
-                    setTimeout(waitForAnime, 50);
-                }
-            }
-            waitForAnime();
+            playEntranceAnimation();
         }
 
         function pauseAnimation() {

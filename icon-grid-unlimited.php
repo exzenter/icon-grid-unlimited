@@ -3,7 +3,9 @@
  * Plugin Name: Icon Grid Unlimited
  * Description: Animated icon grid with configurable size up to 12x12, connections and SEO features
  * Version: 1.3.0
- * Author: EXZENT Webdesign
+ * Plugin URI: https://exzent.de/plugins/
+ * Author: EXZENT
+ * Author URI: https://exzent.de
  * Text Domain: icon-grid-unlimited
  */
 
@@ -20,22 +22,6 @@ function icon_grid_unlimited_init() {
     ]);
 }
 add_action('init', 'icon_grid_unlimited_init');
-
-/**
- * Enqueue anime.js for frontend (MIT licensed, ~17KB vs GSAP's 60KB)
- */
-function icon_grid_unlimited_enqueue_assets() {
-    if (has_block('icon-grid-unlimited/icon-grid')) {
-        wp_enqueue_script(
-            'animejs',
-            'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js',
-            [],
-            '3.2.2',
-            true
-        );
-    }
-}
-add_action('wp_enqueue_scripts', 'icon_grid_unlimited_enqueue_assets');
 
 /**
  * Render the block on frontend

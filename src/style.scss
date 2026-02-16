@@ -79,8 +79,12 @@
     box-shadow: none;
     z-index: 0;
     pointer-events: none;
-    will-change: transform, background-color, box-shadow, backdrop-filter;
-    /* GPU optimization */
+    /* GPU layer promotion via translateZ(0) */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* Smoother rendering */
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .icon-grid-label {
@@ -111,8 +115,9 @@
     width: 55%;
     aspect-ratio: 1 / 1;
     z-index: 70;
-    will-change: transform;
-    /* GPU optimization */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .icon-grid-wrapper svg {
@@ -125,8 +130,8 @@
 
 .icon-grid-wireframe {
     z-index: 2;
-    will-change: opacity;
-    /* GPU optimization */
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .icon-grid-wireframe path,
@@ -147,6 +152,8 @@
     z-index: 1;
     opacity: 0;
     mix-blend-mode: multiply;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .icon-grid-gradient path,
