@@ -133,13 +133,21 @@ $stickyEnabled = $attributes['stickyEnabled'] ?? false;
 $stickyOffset = $attributes['stickyOffset'] ?? 20;
 $centerVertically = $attributes['centerVertically'] ?? false;
 $centerTargetSelector = $attributes['centerTargetSelector'] ?? '';
+
+// Mobile mode settings
+$mobileEnabled = $attributes['mobileEnabled'] ?? false;
+$mobileBreakpoint = $attributes['mobileBreakpoint'] ?? 768;
+$mobileCols = $attributes['mobileCols'] ?? 3;
+$mobileHighlightDuration = $attributes['mobileHighlightDuration'] ?? 2000;
+$mobileHighlightInterval = $attributes['mobileHighlightInterval'] ?? 800;
+
 $stickyClass = $stickyEnabled ? ' is-sticky' : '';
 $centerClass = $centerVertically ? ' center-vertically' : '';
 $enlargeClass = $enlargeEnabled ? ' enlarge-mode' : '';
 $stickyStyle = $stickyEnabled ? 'position: sticky; top: ' . esc_attr($stickyOffset) . 'px; align-self: flex-start;' : '';
 ?>
 
-<div id="<?php echo esc_attr($block_id); ?>" class="wp-block-icon-grid-unlimited-icon-grid<?php echo $stickyClass . $centerClass . $enlargeClass; ?>" <?php if ($stickyStyle): ?>style="<?php echo $stickyStyle; ?>"<?php endif; ?> data-center-vertically="<?php echo $centerVertically ? 'true' : 'false'; ?>" data-center-target="<?php echo esc_attr($centerTargetSelector); ?>" data-grid-rows="<?php echo esc_attr($gridRows); ?>" data-grid-cols="<?php echo esc_attr($gridCols); ?>" data-enlarge-enabled="<?php echo $enlargeEnabled ? 'true' : 'false'; ?>" data-subgrid-rows="<?php echo esc_attr($subgridRows); ?>" data-subgrid-cols="<?php echo esc_attr($subgridCols); ?>" data-subgrid-start-row="<?php echo esc_attr($subgridStartRow); ?>" data-subgrid-start-col="<?php echo esc_attr($subgridStartCol); ?>" data-trigger-button="<?php echo esc_attr($enlargeTriggerButton); ?>" data-trigger-event="<?php echo esc_attr($enlargeTriggerEvent); ?>" data-trigger-scroll="<?php echo esc_attr($enlargeTriggerScroll); ?>">
+<div id="<?php echo esc_attr($block_id); ?>" class="wp-block-icon-grid-unlimited-icon-grid<?php echo $stickyClass . $centerClass . $enlargeClass; ?>" <?php if ($stickyStyle): ?>style="<?php echo $stickyStyle; ?>"<?php endif; ?> data-center-vertically="<?php echo $centerVertically ? 'true' : 'false'; ?>" data-center-target="<?php echo esc_attr($centerTargetSelector); ?>" data-grid-rows="<?php echo esc_attr($gridRows); ?>" data-grid-cols="<?php echo esc_attr($gridCols); ?>" data-enlarge-enabled="<?php echo $enlargeEnabled ? 'true' : 'false'; ?>" data-subgrid-rows="<?php echo esc_attr($subgridRows); ?>" data-subgrid-cols="<?php echo esc_attr($subgridCols); ?>" data-subgrid-start-row="<?php echo esc_attr($subgridStartRow); ?>" data-subgrid-start-col="<?php echo esc_attr($subgridStartCol); ?>" data-trigger-button="<?php echo esc_attr($enlargeTriggerButton); ?>" data-trigger-event="<?php echo esc_attr($enlargeTriggerEvent); ?>" data-trigger-scroll="<?php echo esc_attr($enlargeTriggerScroll); ?>" data-mobile-enabled="<?php echo $mobileEnabled ? 'true' : 'false'; ?>" data-mobile-breakpoint="<?php echo esc_attr($mobileBreakpoint); ?>" data-mobile-cols="<?php echo esc_attr($mobileCols); ?>" data-mobile-highlight-duration="<?php echo esc_attr($mobileHighlightDuration); ?>" data-mobile-highlight-interval="<?php echo esc_attr($mobileHighlightInterval); ?>">
     <style>
         #<?php echo esc_attr($block_id); ?> .icon-grid-container {
             --grid-gap: <?php echo esc_attr($gridGap); ?>;
